@@ -1,0 +1,1204 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PNMCE — Painel de Implementação</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.5.0/dist/chart.umd.js" integrity="sha384-iU8HYtnGQ8Cy4zl7gbNMOhsDTTKX02BTXptVP/vqAWIaTfM7isw76iyZCsjL2eVi" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/gridjs@5.0.2/dist/gridjs.umd.js" integrity="sha384-/XXDzxe4FsGiAe50i/u9pY/Vy/uX654MHB1xoc1BJNnH1WXHhqHga9g3q5tF4gj7" crossorigin="anonymous"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/gridjs@5.0.2/dist/theme/mermaid.min.css" integrity="sha384-jZvDSsmGB9oGGT/4l9bHXGoAv1OxvG/cFmSo0dZaSqmBgvQTKDBFAMftlXTmMbNW" crossorigin="anonymous">
+<style>
+  :root {
+    color-scheme: light;
+    --navy: #113b67;
+    --navy-2: #0c2c4e;
+    --navy-3: #1a4d85;
+    --gold: #f2c230;
+    --gold-2: #f7d666;
+    --card: #f5f5f5;
+    --card-2: #ffffff;
+    --text-dark: #11253f;
+    --text-muted: #5c6b80;
+    --text-onnavy: #f5f7fa;
+    --text-onnavy-muted: #adc0da;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    font-family: 'Inter', -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    background-color: var(--navy);
+    background-image:
+      repeating-linear-gradient(135deg, rgba(255,255,255,0.025) 0px, rgba(255,255,255,0.025) 1px, transparent 1px, transparent 13px),
+      radial-gradient(circle at 10% 0%, rgba(242,194,48,0.08) 0%, transparent 40%),
+      radial-gradient(circle at 95% 30%, rgba(255,255,255,0.05) 0%, transparent 45%);
+    color: var(--text-dark);
+    min-height: 100vh;
+    padding: 32px 40px 64px;
+  }
+  .wrap { max-width: 1360px; margin: 0 auto; }
+  a { color: inherit; }
+
+  /* ---------- Header ---------- */
+  header { margin-bottom: 30px; animation: fadeInUp .5s ease both; }
+  .header-top { display: flex; justify-content: space-between; align-items: flex-end; flex-wrap: wrap; gap: 16px; }
+  .title-block h1 {
+    font-size: 38px; font-weight: 800; letter-spacing: -0.01em; line-height: 1.15;
+    font-stretch: condensed; text-transform: uppercase; color: var(--text-onnavy);
+  }
+  .title-block .subtitle { margin-top: 8px; font-size: 13px; color: var(--text-onnavy-muted); max-width: 780px; line-height: 1.5; }
+  .title-block .subtitle-updated { margin-top: 6px; font-size: 12.5px; color: var(--text-onnavy-muted); }
+  .header-meta { margin-top: 4px; font-size: 12.5px; color: var(--text-onnavy-muted); }
+  .gold-rule { height: 3px; margin-top: 16px; border-radius: 2px; background: linear-gradient(90deg, var(--gold) 0%, rgba(242,194,48,0.15) 70%, transparent 100%); }
+  .live-badge {
+    display: inline-flex; align-items: center; gap: 7px;
+    font-size: 11.5px; font-weight: 800; letter-spacing: .04em; color: var(--navy-2);
+    background: var(--gold); padding: 7px 14px; border-radius: 999px; white-space: nowrap;
+  }
+  .live-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--navy-2); animation: pulse 2s infinite; }
+  @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: .3; } }
+
+  /* ---------- Section titles ---------- */
+  .section-title { display: flex; align-items: center; gap: 12px; margin: 8px 0 16px; }
+  .section-title .num {
+    width: 28px; height: 28px; border-radius: 50%; background: var(--gold);
+    color: var(--navy-2); font-weight: 800; font-size: 13px;
+    display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+  }
+  .section-title h2 {
+    font-size: 17px; font-weight: 800; letter-spacing: .02em; text-transform: uppercase;
+    font-stretch: condensed; color: var(--text-onnavy);
+  }
+  .section-title .line { flex: 1; height: 1px; background: linear-gradient(90deg, rgba(242,194,48,0.5), transparent); }
+  .topic-scope { display: block; margin-bottom: 36px; }
+  .sticky-head { position: sticky; top: 14px; z-index: 35; background: var(--navy); padding-top: 2px; margin: 0 -2px; box-shadow: 0 14px 14px -10px rgba(0,0,0,0.35); }
+  .sticky-head .section-title { margin-left: 2px; margin-right: 2px; }
+
+  /* ---------- Top nav & voltar ---------- */
+  .topnav { display: flex; gap: 18px; flex-wrap: wrap; margin-bottom: 30px; animation: fadeInUp .5s ease .05s both; }
+  .topnav-btn {
+    position: relative; display: inline-block; text-decoration: none;
+    background: linear-gradient(180deg, var(--gold-2) 0%, var(--gold) 55%, #dba617 100%);
+    color: var(--navy-2);
+    border: none; border-radius: 10px;
+    padding: 15px 32px; font-size: 14.5px; font-weight: 800; letter-spacing: .04em;
+    text-transform: uppercase; font-stretch: condensed;
+    box-shadow: 0 5px 0 #b5820f, 0 10px 20px rgba(0,0,0,0.4);
+    text-shadow: 0 1px 0 rgba(255,255,255,0.35);
+    transform: translateY(0);
+    transition: transform .12s ease, box-shadow .12s ease, background .2s ease;
+    cursor: pointer;
+  }
+  .topnav-btn::after {
+    content: ""; position: absolute; top: 0; left: 0; right: 0; height: 45%;
+    border-radius: 10px 10px 0 0;
+    background: linear-gradient(180deg, rgba(255,255,255,0.55), rgba(255,255,255,0));
+    pointer-events: none;
+  }
+  .topnav-btn:hover { background: linear-gradient(180deg, #fbe28a 0%, var(--gold-2) 55%, var(--gold) 100%); transform: translateY(-2px); box-shadow: 0 7px 0 #b5820f, 0 14px 24px rgba(0,0,0,0.45); }
+  .topnav-btn:active { transform: translateY(3px); box-shadow: 0 2px 0 #b5820f, 0 4px 10px rgba(0,0,0,0.35); }
+  .voltar-btn { position: fixed; right: 26px; bottom: 34px; z-index: 100; padding: 12px 26px; font-size: 12.5px; box-shadow: 0 5px 0 #b5820f, 0 12px 26px rgba(0,0,0,0.5); }
+  .voltar-btn:hover { box-shadow: 0 7px 0 #b5820f, 0 16px 30px rgba(0,0,0,0.55); }
+
+  /* ---------- Loading / error ---------- */
+  .loading { max-width: 1360px; margin: 60px auto; padding: 40px; text-align: center; color: var(--text-onnavy-muted); }
+  .spinner { width: 34px; height: 34px; border: 3px solid rgba(255,255,255,0.15); border-top-color: var(--gold); border-radius: 50%; margin: 0 auto 14px; animation: spin .9s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .error-box { max-width: 1360px; margin: 40px auto; padding: 24px 28px; color: #ffdad6; background: rgba(179,38,30,0.25); border: 1px solid rgba(255,255,255,0.15); border-radius: 12px; text-align: center; }
+
+  @keyframes fadeInUp { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: translateY(0); } }
+
+
+  /* ---------- Panel cards (EAP / catalog / table) ---------- */
+  .panel-card { background: var(--card); border-radius: 12px; padding: 22px 24px; box-shadow: 0 10px 24px rgba(0,0,0,0.22); animation: fadeInUp .5s ease both; }
+  .eap-level-label { font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: .05em; margin: 0 0 10px; }
+  .eap-pills { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 18px; }
+  .eap-pill {
+    position: relative; display: inline-flex; align-items: center; gap: 7px; cursor: pointer;
+    background: linear-gradient(180deg, var(--gold-2) 0%, var(--gold) 55%, #dba617 100%);
+    color: var(--navy-2); border: none; border-radius: 8px; padding: 8px 14px; font-size: 12px; font-weight: 800;
+    letter-spacing: .02em; text-transform: uppercase; font-stretch: condensed;
+    box-shadow: 0 3px 0 #b5820f, 0 6px 12px rgba(0,0,0,0.25);
+    text-shadow: 0 1px 0 rgba(255,255,255,0.3);
+    transition: transform .12s ease, box-shadow .12s ease, background .2s ease;
+  }
+  .eap-pill:hover { transform: translateY(-1px); box-shadow: 0 4px 0 #b5820f, 0 8px 14px rgba(0,0,0,0.3); }
+  .eap-pill .pill-dot { width: 8px; height: 8px; border-radius: 2px; flex-shrink: 0; box-shadow: 0 0 0 1.5px rgba(255,255,255,0.6); }
+  .eap-pill .pill-count { background: rgba(17,37,63,0.14); border-radius: 999px; padding: 1px 7px; font-size: 10.5px; color: var(--navy-2); font-weight: 800; }
+  .eap-pill.active {
+    background: linear-gradient(180deg, var(--navy-3) 0%, var(--navy) 55%, var(--navy-2) 100%);
+    color: #fff; text-shadow: none; box-shadow: 0 3px 0 #061627, 0 6px 12px rgba(0,0,0,0.35);
+  }
+  .eap-pill.active .pill-count { background: rgba(255,255,255,0.18); color: #fff; }
+  .eap-empty-hint { font-size: 12.5px; color: var(--text-muted); padding: 6px 0 2px; }
+  .reset-btn {
+    display: inline-flex; align-items: center; gap: 6px; background: var(--navy); border: none; color: #fff;
+    padding: 9px 16px; border-radius: 8px; font-size: 12.5px; font-weight: 700; cursor: pointer; transition: background .2s ease;
+  }
+  .reset-btn:hover { background: var(--navy-3); }
+
+  /* ---------- Filter bar ---------- */
+  .filters {
+    display: flex; gap: 14px; flex-wrap: wrap; align-items: center;
+    background: var(--card); border-radius: 12px; padding: 16px 20px; margin-bottom: 20px;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+    animation: fadeInUp .5s ease both;
+  }
+  .filter-item { display: flex; flex-direction: column; gap: 6px; }
+  .filter-item label { font-size: 10.5px; text-transform: uppercase; letter-spacing: .06em; color: var(--text-muted); font-weight: 700; }
+  .filter-item select {
+    background: #fff; color: var(--text-dark); border: 1px solid #d7dce3;
+    border-radius: 8px; padding: 9px 14px; font-size: 13px; font-family: inherit;
+    min-width: 200px; cursor: pointer; outline: none; transition: border-color .2s ease;
+  }
+  .filter-item select:hover, .filter-item select:focus { border-color: var(--gold); }
+  .filter-count { margin-left: auto; font-size: 12.5px; color: var(--text-muted); align-self: center; }
+  .filter-count strong { color: var(--navy); }
+
+  /* ---------- Charts ---------- */
+  .charts-grid { display: grid; grid-template-columns: 1.3fr 1fr; gap: 20px; margin-bottom: 20px; }
+  .charts-grid.two-col { grid-template-columns: 1fr 1fr; }
+  @media (max-width: 900px) { .charts-grid, .charts-grid.two-col { grid-template-columns: 1fr; } }
+  .chart-card {
+    background: var(--card); border-radius: 12px; padding: 22px 24px 18px;
+    box-shadow: 0 10px 24px rgba(0,0,0,0.22);
+    transition: transform .25s ease, box-shadow .25s ease;
+    animation: fadeInUp .5s ease both;
+    display: flex; flex-direction: column;
+  }
+  .chart-card:hover { transform: translateY(-3px); box-shadow: 0 16px 32px rgba(0,0,0,0.3); }
+  .chart-card .chart-title { font-size: 14.5px; font-weight: 800; color: var(--navy); text-transform: uppercase; letter-spacing: .01em; font-stretch: condensed; margin-bottom: 3px; }
+  .chart-card .chart-caption { font-size: 11.5px; color: var(--text-muted); margin: 0 0 14px; }
+  .chart-card .chart-box { position: relative; flex: 1; min-height: 230px; }
+  .chart-card .chart-count-label { font-size: 11px; color: var(--text-muted); text-align: right; margin-top: 8px; }
+
+  /* ---------- Catalog ---------- */
+  .catalog-list { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; max-height: 420px; overflow-y: auto; padding-right: 4px; }
+  @media (max-width: 900px) { .catalog-list { grid-template-columns: 1fr; } }
+  .catalog-item { border-radius: 10px; padding: 12px 14px; background: var(--card-2); box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+  .catalog-item .cat-bloco { display: inline-flex; font-size: 10px; font-weight: 800; color: #fff; background: var(--navy-3); text-transform: uppercase; letter-spacing: .03em; padding: 2px 9px; border-radius: 999px; margin-bottom: 6px; }
+  .catalog-item .cat-entrega { font-size: 12.5px; font-weight: 700; color: var(--navy); margin-bottom: 3px; }
+  .catalog-item .cat-desc { font-size: 11.5px; color: var(--text-muted); line-height: 1.4; }
+  .catalog-empty { font-size: 12.5px; color: var(--text-muted); padding: 20px; text-align: center; }
+
+  /* ---------- Table ---------- */
+  .status-badge { display: inline-block; padding: 2px 9px; border-radius: 999px; font-size: 10.5px; font-weight: 800; letter-spacing: .01em; }
+  .status-badge.concluido { background: rgba(47,111,98,0.15); color: #2f6f62; }
+  .status-badge.nao-iniciado { background: #eef1f5; color: #5c6b80; }
+  .status-badge.andamento { background: rgba(163,121,31,0.18); color: #8a6b0f; }
+
+  .reg-detail-placeholder { color: var(--text-muted); font-size: 13px; font-style: italic; padding: 24px 4px; text-align: center; }
+  .reg-detail-record { border-top: 1px solid rgba(17,37,63,0.08); padding-top: 16px; margin-top: 16px; }
+  .reg-detail-record:first-child { border-top: none; margin-top: 0; padding-top: 0; }
+  .reg-detail-record-tag { display: inline-flex; font-size: 10px; font-weight: 800; color: #fff; background: var(--navy-3); text-transform: uppercase; letter-spacing: .03em; padding: 2px 9px; border-radius: 999px; margin-bottom: 10px; }
+  .reg-detail-row { display: flex; flex-wrap: wrap; border-bottom: 1px solid rgba(17,37,63,0.08); padding-bottom: 14px; margin-bottom: 14px; }
+  .reg-detail-row:last-child { border-bottom: none; padding-bottom: 0; margin-bottom: 0; }
+  .reg-detail-field { flex: 1 1 260px; min-width: 0; padding-right: 22px; }
+  .reg-detail-field:not(:last-child) { border-right: 1px solid rgba(17,37,63,0.08); }
+  .reg-detail-field:not(:first-child) { padding-left: 22px; }
+  .reg-detail-field .rdf-label { font-size: 10.5px; text-transform: uppercase; letter-spacing: .05em; color: var(--text-muted); font-weight: 700; margin-bottom: 5px; }
+  .reg-detail-field .rdf-value { font-size: 13px; color: var(--text-dark); line-height: 1.55; white-space: pre-line; }
+  .gridjs-container { color: var(--text-dark); font-family: inherit; }
+  .gridjs-wrapper { background: transparent; border: 1px solid #e1e7ee; border-radius: 10px !important; box-shadow: none; overflow-x: auto; }
+  table.gridjs-table { background: transparent; width: 100%; font-size: 12.5px !important; }
+  th.gridjs-th { background: var(--navy) !important; color: #fff !important; font-size: 11px !important; text-transform: uppercase; letter-spacing: .05em; font-weight: 700; border-bottom: none; border-right: none; padding: 12px 16px; }
+  th.gridjs-th-sort:hover { background: var(--navy-3) !important; color: var(--gold) !important; }
+  td.gridjs-td { background: #fff; border-bottom: 1px solid #edf0f4; border-right: none; padding: 12px 16px; font-size: 13px; vertical-align: top; }
+  tr.gridjs-tr:hover td.gridjs-td { background: #fbf6e6; }
+  .gridjs-search-input { background: #fff; border: 1px solid #d7dce3; color: var(--text-dark); border-radius: 8px !important; padding: 8px 12px; }
+  .gridjs-search-input:focus { outline: none; border-color: var(--gold); }
+  .gridjs-footer { border: none !important; }
+  .gridjs-pagination { color: var(--text-muted); font-size: 12.5px; }
+  .gridjs-pagination .gridjs-pages button { background: #fff; border: 1px solid #d7dce3; color: var(--text-dark); border-radius: 8px; margin: 0 2px; }
+  .gridjs-pagination .gridjs-pages button:hover { background: #f1f3f6; }
+  .gridjs-pagination .gridjs-pages button.gridjs-currentPage { background: var(--gold); border-color: var(--gold); color: var(--navy-2); font-weight: 700; }
+  .gridjs-summary { color: var(--text-muted); }
+
+  footer.page-footer { text-align: center; font-size: 11.5px; color: var(--text-onnavy-muted); padding: 10px 0 6px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <a href="#topo" class="topnav-btn voltar-btn" id="btnVoltar">Voltar</a>
+
+  <header id="topo">
+    <div class="header-top">
+      <div class="title-block">
+        <h1>PNMCE<br>Painel de Implementação</h1>
+        <div class="subtitle">Política Nacional para Industrialização de Minerais Críticos e Estratégicos — EAP, blocos de entrega e cronograma de ações. Fonte: planilha "PNMCE_dados_painel" (abas "EAP por bloco" e "Cronograma de ações")</div>
+        <div class="subtitle-updated" id="subtitleUpdated">Carregando dados...</div>
+        <p class="header-meta" id="headerStats"></p>
+      </div>
+      <div class="live-badge"><span class="live-dot"></span>Conectado ao Google Sheets</div>
+    </div>
+    <div class="gold-rule"></div>
+  </header>
+
+  <div id="loading" class="loading"><div class="spinner"></div>Lendo a planilha "PNMCE_dados_painel".</div>
+  <div id="errorBox" class="error-box" style="display:none;"></div>
+
+  <div id="content" style="display:none;">
+
+    <div class="topnav">
+      <a href="#sec-eap" class="topnav-btn">EAP</a>
+      <a href="#sec-graficos" class="topnav-btn">Gráficos</a>
+      <a href="#sec-catalogo" class="topnav-btn">Catálogo</a>
+      <a href="#sec-tabela" class="topnav-btn">Ações Detalhadas</a>
+      <a href="#sec-regulamentacoes" class="topnav-btn">Regulamentações</a>
+    </div>
+
+    <div class="topic-scope">
+      <div class="sticky-head">
+        <div class="section-title" id="sec-eap"><span class="num">1</span><h2>Estrutura Analítica de Projeto (EAP)</h2><span class="line"></span></div>
+      </div>
+      <div class="panel-card">
+        <div class="eap-level-label">Blocos (nível 1) — clique para filtrar</div>
+        <div class="eap-pills" id="eapBlocoPills"></div>
+        <div class="eap-level-label">Entregas do bloco selecionado (nível 2)</div>
+        <div class="eap-pills" id="eapEntregaPills"></div>
+        <div id="eapEmptyHint" class="eap-empty-hint">Selecione um bloco acima para ver suas entregas.</div>
+        <button class="reset-btn" id="eapResetBtn" style="display:none; margin-top:8px;">✕ Limpar seleção da EAP</button>
+      </div>
+    </div>
+
+    <div class="topic-scope">
+      <div class="sticky-head">
+        <div class="section-title" id="sec-graficos"><span class="num">2</span><h2>Gráficos</h2><span class="line"></span></div>
+      </div>
+      <div class="filters">
+        <div class="filter-item"><label>Bloco</label><select id="filterBloco"><option value="">Todos os blocos</option></select></div>
+        <div class="filter-item"><label>Entrega</label><select id="filterEntrega"><option value="">Todas as entregas</option></select></div>
+        <div class="filter-item"><label>Status da Ação</label>
+          <select id="filterStatusAcao">
+            <option value="">Todos os status</option>
+            <option value="Concluído">Concluído</option>
+            <option value="Não iniciado">Não iniciado</option>
+          </select>
+        </div>
+        <button class="reset-btn" id="filterResetBtn">✕ Limpar filtros</button>
+        <span class="filter-count" id="filterCountLabel"></span>
+      </div>
+      <div class="charts-grid">
+        <div class="chart-card">
+          <div class="chart-title">Ações por Bloco</div>
+          <div class="chart-caption">Filtrado pelo status selecionado; clique em uma barra para filtrar por bloco</div>
+          <div class="chart-box"><canvas id="chartBloco"></canvas></div>
+          <div class="chart-count-label" id="blocoCountLabel"></div>
+        </div>
+        <div class="chart-card">
+          <div class="chart-title">Ações por Status da Ação</div>
+          <div class="chart-caption">Filtrado por bloco/entrega selecionados; clique em uma fatia para filtrar por status</div>
+          <div class="chart-box"><canvas id="chartStatus"></canvas></div>
+          <div class="chart-count-label" id="statusCountLabel"></div>
+        </div>
+      </div>
+      <div class="charts-grid two-col">
+        <div class="chart-card">
+          <div class="chart-title">Status Geral da Entrega, por Bloco</div>
+          <div class="chart-caption">Composição de "em andamento", "não iniciado" (e "não informado", quando a célula está vazia na planilha) nas entregas de cada bloco, considerando os filtros ativos</div>
+          <div class="chart-box"><canvas id="chartStatusGeral"></canvas></div>
+          <div class="chart-count-label" id="statusGeralCountLabel"></div>
+        </div>
+        <div class="chart-card">
+          <div class="chart-title">Ações por Responsável</div>
+          <div class="chart-caption">Top responsáveis pelo maior número de ações, dentro dos filtros ativos</div>
+          <div class="chart-box"><canvas id="chartResponsavel"></canvas></div>
+          <div class="chart-count-label" id="responsavelCountLabel"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="topic-scope">
+      <div class="sticky-head">
+        <div class="section-title" id="sec-catalogo"><span class="num">3</span><h2>Catálogo de Entregas (aba "EAP por bloco")</h2><span class="line"></span></div>
+      </div>
+      <div class="panel-card">
+        <div class="eap-level-label" id="catalogSub"></div>
+        <div class="catalog-list" id="catalogList"></div>
+      </div>
+    </div>
+
+    <div class="topic-scope">
+      <div class="sticky-head">
+        <div class="section-title" id="sec-tabela"><span class="num">4</span><h2>Ações Detalhadas (aba "Cronograma de ações")</h2><span class="line"></span></div>
+      </div>
+      <div class="panel-card">
+        <div class="eap-level-label" id="tableSub"></div>
+        <div id="tableAcoesContainer"></div>
+      </div>
+    </div>
+
+    <div class="topic-scope">
+      <div class="sticky-head">
+        <div class="section-title" id="sec-regulamentacoes"><span class="num">5</span><h2>Regulamentações (aba "Regulamentações")</h2><span class="line"></span></div>
+      </div>
+      <div class="filters">
+        <div class="filter-item"><label>Tema</label><select id="filterRegTema"><option value="">Todos os temas</option></select></div>
+        <div class="filter-item"><label>Tipo de Ato</label><select id="filterRegTipoAto"><option value="">Todos os tipos</option></select></div>
+        <div class="filter-item"><label>Modalidade</label><select id="filterRegModalidade"><option value="">Todas as modalidades</option></select></div>
+        <button class="reset-btn" id="filterRegResetBtn">✕ Limpar filtros</button>
+        <span class="filter-count" id="filterRegCountLabel"></span>
+      </div>
+      <div class="charts-grid two-col">
+        <div class="chart-card">
+          <div class="chart-title">Regulamentações por Tema</div>
+          <div class="chart-caption">Filtrado por tipo de ato/modalidade selecionados; clique em uma barra para filtrar por tema</div>
+          <div class="chart-box"><canvas id="chartRegTema"></canvas></div>
+          <div class="chart-count-label" id="regTemaCountLabel"></div>
+        </div>
+        <div class="chart-card">
+          <div class="chart-title">Regulamentações por Tipo de Ato</div>
+          <div class="chart-caption">Filtrado por tema/modalidade selecionados; clique em uma fatia para filtrar por tipo de ato</div>
+          <div class="chart-box"><canvas id="chartRegTipoAto"></canvas></div>
+          <div class="chart-count-label" id="regTipoAtoCountLabel"></div>
+        </div>
+      </div>
+      <div class="panel-card reg-detail-card">
+        <div class="eap-level-label">Detalhamento por Tema e Subtema</div>
+        <div class="filters" style="margin-bottom: 18px;">
+          <div class="filter-item"><label>Tema</label><select id="filterRegDetailTema"><option value="">Selecione um tema</option></select></div>
+          <div class="filter-item"><label>Subtema</label><select id="filterRegDetailSubtema"><option value="">Selecione um subtema</option></select></div>
+          <button class="reset-btn" id="filterRegDetailResetBtn">✕ Limpar</button>
+        </div>
+        <div id="regDetailContent"></div>
+      </div>
+      <div class="panel-card">
+        <div class="eap-level-label" id="regTableSub"></div>
+        <div id="tableRegContainer"></div>
+      </div>
+    </div>
+
+  </div>
+
+  <footer class="page-footer">PNMCE — Painel de Implementação · Dados extraídos ao vivo da planilha "PNMCE_dados_painel"</footer>
+
+</div>
+
+<script>
+const FILE_ID = '1vpa_s_NQ84ocam3kqU83D72BcQAN-43tSN74q4V1UvM';
+const READ_TOOL = 'mcp__3d8593b1-d4a6-4327-a66d-fada65586761__read_file_content';
+
+/* ---------------- Parsing helpers ---------------- */
+function cleanCell(s) {
+  return (s || '').replace(/\\&/g, '&').replace(/\\-/g, '-').replace(/\\\|/g, '|').replace(/\\~/g, '~').replace(/\\</g, '<').trim();
+}
+function parseBlock(block) {
+  const lines = block.split('\n');
+  const tableLines = lines.filter(l => l.trim().startsWith('|'));
+  if (!tableLines.length) return null;
+  const rows = tableLines.map(line => {
+    let t = line.trim();
+    if (t.startsWith('|')) t = t.slice(1);
+    if (t.endsWith('|')) t = t.slice(0, -1);
+    return t.split('|').map(c => c.trim());
+  });
+  const isSepRow = row => row.every(c => c === '' || /^:?-+:?$/.test(c));
+  const nonEmptyCount = row => row.filter(c => c !== '').length;
+  let header = null;
+  const dataRows = [];
+  for (const row of rows) {
+    if (isSepRow(row)) {
+      // Linhas totalmente em branco ou de traços (separador markdown) só servem de
+      // moldura. Se já temos cabeçalho e dados coletados, uma linha assim encerra a
+      // tabela atual (evita colar duas tabelas do mesmo bloco de texto).
+      if (header !== null && dataRows.length > 0) break;
+      continue;
+    }
+    if (header === null) {
+      // Nas abas do PNMCE cada bloco de texto começa com uma ou mais linhas de
+      // "título"/nota isoladas (uma célula preenchida, as demais em branco) antes do
+      // cabeçalho de colunas de verdade. Um cabeçalho real tem pelo menos 2 células
+      // preenchidas (os nomes das colunas) — por isso ignoramos linhas de 1 célula só.
+      if (nonEmptyCount(row) < 2) continue;
+      header = row.map(cleanCell);
+      continue;
+    }
+    dataRows.push(row.map(cleanCell));
+  }
+  if (!header) return null;
+  return { header, rawRows: dataRows, rows: dataRows.map(r => { const o = {}; header.forEach((h, i) => o[h] = r[i] ?? ''); return o; }) };
+}
+function parseAllTables(text) { return text.split(/\n\s*\n/).map(parseBlock).filter(Boolean); }
+function findTableByHeader(tables, requiredCols) { return tables.find(t => requiredCols.every(c => t.header.includes(c))); }
+function escapeHtml(s) { return (s == null ? '' : String(s)).replace(/[&<>"']/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c])); }
+function fmtDateTimePtBr() {
+  const d = new Date();
+  const meses = ['janeiro','fevereiro','março','abril','maio','junho','julho','agosto','setembro','outubro','novembro','dezembro'];
+  const hh = String(d.getHours()).padStart(2,'0');
+  const mm = String(d.getMinutes()).padStart(2,'0');
+  return `${d.getDate()} de ${meses[d.getMonth()]} de ${d.getFullYear()} às ${hh}:${mm}`;
+}
+
+/* ---------------- Bloco taxonomy ---------------- */
+// A planilha de origem ainda numera "Bloco 3" = Outras entregas, "Bloco 4" = CNPMCE,
+// "Bloco 5" = Instrumentos de Fomento, "Bloco 6" = Áreas Estratégicas. A pedido do
+// usuário, o painel agora EXIBE essa numeração reordenada (Outras entregas passa a ser
+// o Bloco 6; CNPMCE, Instrumentos de Fomento e Áreas Estratégicas sobem para 3, 4 e 5) —
+// sem alterar a planilha em si (não há ferramenta de edição de células disponível aqui).
+// blocoKey continua sendo a chave real da planilha (usada para filtrar/casar dados);
+// BLOCO_DISPLAY_NUM só controla o número mostrado na tela.
+const BLOCO_ORDER = ['Bloco 1', 'Bloco 2', 'Bloco 4', 'Bloco 5', 'Bloco 6', 'Bloco 3'];
+const BLOCO_LABELS = {
+  'Bloco 1': 'CIMCE',
+  'Bloco 2': 'Mecanismos de Triagem',
+  'Bloco 3': 'Outras entregas',
+  'Bloco 4': 'CNPMCE',
+  'Bloco 5': 'Instrumentos de Fomento',
+  'Bloco 6': 'Áreas Estratégicas'
+};
+const BLOCO_DISPLAY_NUM = { 'Bloco 1': 1, 'Bloco 2': 2, 'Bloco 4': 3, 'Bloco 5': 4, 'Bloco 6': 5, 'Bloco 3': 6 };
+function blocoDisplayLabel(blocoKey) {
+  return 'Bloco ' + (BLOCO_DISPLAY_NUM[blocoKey] || '?') + ' — ' + (BLOCO_LABELS[blocoKey] || blocoKey);
+}
+const BLOCO_COLORS = {
+  'Bloco 1': '#1f3a5f',
+  'Bloco 2': '#8b3a3a',
+  'Bloco 3': '#a3791f',
+  'Bloco 4': '#2f6f62',
+  'Bloco 5': '#5b4b8a',
+  'Bloco 6': '#3a6ea5'
+};
+function normalizeBlocoKey(raw) {
+  const m = (raw || '').match(/^Bloco\s*(\d+)/);
+  return m ? ('Bloco ' + m[1]) : (raw || '');
+}
+
+/* ---------------- Regulamentações ---------------- */
+const REG_TEMA_COLORS = {
+  'CIMCE': '#1f3a5f',
+  'Mecanismos de Triagem': '#8b3a3a',
+  'Lista de MCEs': '#a3791f',
+  'CNPMCE': '#2f6f62',
+  'Instrumentos de Fomento': '#5b4b8a',
+  'Outros': '#3a6ea5'
+};
+function splitField(value, sep) {
+  if (!value || value === '-' || value === '\\-') return [];
+  return value.split(sep).map(s => s.trim()).filter(Boolean);
+}
+function normalizeStatusAcao(raw) {
+  const r = (raw || '').trim();
+  if (r.startsWith('Concluído')) return 'Concluído';
+  if (r.startsWith('Não iniciado')) return 'Não iniciado';
+  return r || '—';
+}
+function normalizeStatusGeral(raw) {
+  const trimmed = (raw || '').trim();
+  // Algumas linhas novas da planilha ainda não têm essa célula preenchida; em vez de
+  // descartar silenciosamente a ação do gráfico (o que subcontaria o total), tratamos
+  // como uma categoria própria e visível "Não informado".
+  if (!trimmed) return 'Não informado';
+  const r = trimmed.toLowerCase();
+  if (r.startsWith('em andamento')) return 'Em andamento';
+  if (r.startsWith('não iniciado')) return 'Não iniciado';
+  return trimmed;
+}
+const STATUS_ACAO_COLORS = { 'Concluído': '#2f6f62', 'Não iniciado': '#93a1ad' };
+const STATUS_GERAL_COLORS = { 'Em andamento': '#a3791f', 'Não iniciado': '#93a1ad', 'Não informado': '#c3ccd4' };
+const STATUS_GERAL_BASE_ORDER = ['Em andamento', 'Não iniciado', 'Não informado'];
+
+/* ---------------- State ---------------- */
+let RAW_EAP = [];
+let RAW_CRONO = [];
+let RAW_REG = [];
+let charts = {};
+let tableGrid = null;
+let tableGridReg = null;
+const filterState = { bloco: '', entrega: '', status: '' };
+const filterStateReg = { tema: '', tipoAto: '', modalidade: '' };
+const filterStateRegDetail = { tema: '', subtema: '' };
+
+function destroyChart(key) { if (charts[key]) { charts[key].destroy(); delete charts[key]; } }
+
+/* ================= Data prep ================= */
+function prepareData(eapTable, cronoTable) {
+  RAW_EAP = eapTable.rows.map(r => Object.assign({}, r, {
+    blocoKey: normalizeBlocoKey(r['Bloco']),
+    blocoLabel: BLOCO_LABELS[normalizeBlocoKey(r['Bloco'])] || r['Bloco']
+  }));
+  RAW_CRONO = cronoTable.rows.map(r => Object.assign({}, r, {
+    blocoKey: normalizeBlocoKey(r['Bloco']),
+    blocoLabel: BLOCO_LABELS[normalizeBlocoKey(r['Bloco'])] || r['Bloco'],
+    statusAcaoNorm: normalizeStatusAcao(r['Status da ação']),
+    statusGeralNorm: normalizeStatusGeral(r['Status geral da entrega'])
+  }));
+}
+function prepareReg(regTable) {
+  RAW_REG = regTable.rows.map(r => Object.assign({}, r, {
+    modalidadeList: splitField(r['Modalidade'], ';')
+  }));
+}
+
+/* ================= Filtering ================= */
+function getFiltered({ ignoreBloco, ignoreEntrega, ignoreStatus } = {}) {
+  return RAW_CRONO.filter(r => {
+    if (!ignoreBloco && filterState.bloco && r.blocoKey !== filterState.bloco) return false;
+    if (!ignoreEntrega && filterState.entrega && r['Entrega'] !== filterState.entrega) return false;
+    if (!ignoreStatus && filterState.status && r.statusAcaoNorm !== filterState.status) return false;
+    return true;
+  });
+}
+function getFilteredReg({ ignoreTema, ignoreTipoAto, ignoreModalidade } = {}) {
+  return RAW_REG.filter(r => {
+    if (!ignoreTema && filterStateReg.tema && r['Tema'] !== filterStateReg.tema) return false;
+    if (!ignoreTipoAto && filterStateReg.tipoAto && r['Tipo de ato'] !== filterStateReg.tipoAto) return false;
+    if (!ignoreModalidade && filterStateReg.modalidade && !r.modalidadeList.includes(filterStateReg.modalidade)) return false;
+    return true;
+  });
+}
+
+/* ================= EAP tree ================= */
+function renderEapTree() {
+  const rowsForBlocoCounts = getFiltered({ ignoreBloco: true, ignoreEntrega: true });
+  const blocoCounts = new Map();
+  BLOCO_ORDER.forEach(k => blocoCounts.set(k, 0));
+  rowsForBlocoCounts.forEach(r => blocoCounts.set(r.blocoKey, (blocoCounts.get(r.blocoKey) || 0) + 1));
+
+  const blocoBox = document.getElementById('eapBlocoPills');
+  blocoBox.innerHTML = BLOCO_ORDER.map(k => {
+    const active = filterState.bloco === k;
+    return `
+      <div class="eap-pill${active ? ' active' : ''}" data-bloco="${escapeHtml(k)}">
+        <span class="pill-dot" style="background:${BLOCO_COLORS[k]}"></span>
+        ${escapeHtml(blocoDisplayLabel(k))}
+        <span class="pill-count">${blocoCounts.get(k) || 0}</span>
+      </div>`;
+  }).join('');
+  blocoBox.querySelectorAll('.eap-pill').forEach(el => {
+    el.addEventListener('click', () => {
+      const k = el.getAttribute('data-bloco');
+      filterState.bloco = (filterState.bloco === k) ? '' : k;
+      filterState.entrega = '';
+      renderAll();
+    });
+  });
+
+  const entregaBox = document.getElementById('eapEntregaPills');
+  const emptyHint = document.getElementById('eapEmptyHint');
+  if (!filterState.bloco) {
+    entregaBox.innerHTML = '';
+    emptyHint.style.display = 'block';
+  } else {
+    emptyHint.style.display = 'none';
+    const rowsForEntregaCounts = getFiltered({ ignoreEntrega: true });
+    const entregaCounts = new Map();
+    rowsForEntregaCounts.forEach(r => entregaCounts.set(r['Entrega'], (entregaCounts.get(r['Entrega']) || 0) + 1));
+    const entregas = [...entregaCounts.keys()].sort((a, b) => a.localeCompare(b, 'pt-BR'));
+    entregaBox.innerHTML = entregas.map(e => {
+      const active = filterState.entrega === e;
+      return `
+        <div class="eap-pill entrega-pill${active ? ' active' : ''}" data-entrega="${escapeHtml(e)}">
+          ${escapeHtml(e)}
+          <span class="pill-count">${entregaCounts.get(e) || 0}</span>
+        </div>`;
+    }).join('');
+    entregaBox.querySelectorAll('.eap-pill').forEach(el => {
+      el.addEventListener('click', () => {
+        const e = el.getAttribute('data-entrega');
+        filterState.entrega = (filterState.entrega === e) ? '' : e;
+        renderAll();
+      });
+    });
+  }
+
+  document.getElementById('eapResetBtn').style.display = (filterState.bloco || filterState.entrega) ? 'inline-flex' : 'none';
+}
+
+/* ================= Charts ================= */
+function richTooltip() {
+  return {
+    backgroundColor: 'rgba(12,44,78,0.96)', borderColor: 'rgba(255,255,255,0.12)', borderWidth: 1,
+    titleColor: '#fff', titleFont: { weight: '700' }, bodyColor: '#dce6ec', bodySpacing: 4,
+    padding: 12, cornerRadius: 8, boxPadding: 4, usePointStyle: true
+  };
+}
+
+function renderChartBloco() {
+  const rows = getFiltered({ ignoreBloco: true, ignoreEntrega: true });
+  const counts = new Map();
+  BLOCO_ORDER.forEach(k => counts.set(k, 0));
+  rows.forEach(r => counts.set(r.blocoKey, (counts.get(r.blocoKey) || 0) + 1));
+  const total = rows.length;
+  const labels = BLOCO_ORDER.map(k => blocoDisplayLabel(k));
+  const values = BLOCO_ORDER.map(k => counts.get(k) || 0);
+  const colors = BLOCO_ORDER.map(k => filterState.bloco && filterState.bloco !== k ? (BLOCO_COLORS[k] + '55') : BLOCO_COLORS[k]);
+
+  destroyChart('bloco');
+  const ctx = document.getElementById('chartBloco').getContext('2d');
+  charts.bloco = new Chart(ctx, {
+    type: 'bar',
+    data: { labels, datasets: [{ data: values, backgroundColor: colors, borderRadius: 6, maxBarThickness: 34 }] },
+    options: {
+      indexAxis: 'y', responsive: true, maintainAspectRatio: false,
+      onClick: (evt, els) => {
+        if (!els.length) return;
+        const k = BLOCO_ORDER[els[0].index];
+        filterState.bloco = (filterState.bloco === k) ? '' : k;
+        filterState.entrega = '';
+        // renderAll() destrói e recria este mesmo gráfico; fazer isso de forma síncrona
+        // dentro do próprio handler de clique do Chart.js corrompe o processamento interno
+        // do evento (erro "Cannot read properties of undefined (reading 'handleEvent')").
+        // Adiar para o próximo tick evita a corrida.
+        setTimeout(renderAll, 0);
+      },
+      plugins: {
+        legend: { display: false },
+        tooltip: Object.assign(richTooltip(), { callbacks: {
+          label: (c) => { const pct = total ? ((c.raw / total) * 100).toFixed(1) : '0.0'; return ` ${c.raw} ações (${pct}%)`; }
+        } })
+      },
+      scales: {
+        x: { beginAtZero: true, ticks: { color: '#5c6b80', precision: 0 }, grid: { color: '#e4e4e4' } },
+        y: { ticks: { color: '#11253f', font: { size: 11.5, weight: '600' } }, grid: { display: false } }
+      }
+    }
+  });
+  document.getElementById('blocoCountLabel').textContent = total + ' ações consideradas neste gráfico';
+}
+
+function renderChartStatus() {
+  const rows = getFiltered({ ignoreStatus: true });
+  const order = ['Concluído', 'Não iniciado'];
+  const counts = new Map(order.map(s => [s, 0]));
+  rows.forEach(r => counts.set(r.statusAcaoNorm, (counts.get(r.statusAcaoNorm) || 0) + 1));
+  const total = rows.length;
+  const colors = order.map(s => filterState.status && filterState.status !== s ? (STATUS_ACAO_COLORS[s] + '55') : STATUS_ACAO_COLORS[s]);
+
+  destroyChart('status');
+  const ctx = document.getElementById('chartStatus').getContext('2d');
+  charts.status = new Chart(ctx, {
+    type: 'doughnut',
+    data: { labels: order, datasets: [{ data: order.map(s => counts.get(s) || 0), backgroundColor: colors, borderColor: '#f5f5f5', borderWidth: 2 }] },
+    options: {
+      responsive: true, maintainAspectRatio: false, cutout: '62%',
+      onClick: (evt, els) => {
+        if (!els.length) return;
+        const s = order[els[0].index];
+        filterState.status = (filterState.status === s) ? '' : s;
+        // Mesma corrida do gráfico "Ações por Bloco": adia a reconstrução para o próximo
+        // tick para não destruir o gráfico dentro do seu próprio handler de clique.
+        setTimeout(renderAll, 0);
+      },
+      plugins: {
+        legend: { position: 'bottom', labels: { color: '#11253f', usePointStyle: true, pointStyle: 'circle', boxWidth: 8, boxHeight: 8, padding: 16, font: { weight: '600', size: 11.5 } } },
+        tooltip: Object.assign(richTooltip(), { callbacks: {
+          label: (c) => { const pct = total ? ((c.raw / total) * 100).toFixed(1) : '0.0'; return ` ${c.label}: ${c.raw} (${pct}%)`; }
+        } })
+      }
+    }
+  });
+  document.getElementById('statusCountLabel').textContent = total + ' ações consideradas neste gráfico';
+}
+
+function renderChartStatusGeral() {
+  const rows = getFiltered();
+  // A ordem base cobre os dois status esperados mais o "Não informado" (célula vazia na
+  // planilha); qualquer outro valor inédito que apareça no futuro também é incluído, para
+  // que nenhuma ação filtrada fique fora do gráfico (o que subcontaria o total exibido).
+  const extra = [...new Set(rows.map(r => r.statusGeralNorm))].filter(s => !STATUS_GERAL_BASE_ORDER.includes(s)).sort((a, b) => a.localeCompare(b, 'pt-BR'));
+  const order = STATUS_GERAL_BASE_ORDER.concat(extra).filter(s => rows.some(r => r.statusGeralNorm === s));
+  const perBloco = new Map();
+  BLOCO_ORDER.forEach(k => { const o = {}; order.forEach(s => o[s] = 0); perBloco.set(k, o); });
+  rows.forEach(r => { const o = perBloco.get(r.blocoKey); if (o) o[r.statusGeralNorm] = (o[r.statusGeralNorm] || 0) + 1; });
+  const labels = BLOCO_ORDER.map(k => 'Bloco ' + (BLOCO_DISPLAY_NUM[k] || '?'));
+  const datasets = order.map(s => ({
+    label: s,
+    data: BLOCO_ORDER.map(k => perBloco.get(k)[s] || 0),
+    backgroundColor: STATUS_GERAL_COLORS[s] || '#7d8b98',
+    borderRadius: 4,
+    maxBarThickness: 28
+  }));
+
+  destroyChart('statusGeral');
+  const ctx = document.getElementById('chartStatusGeral').getContext('2d');
+  charts.statusGeral = new Chart(ctx, {
+    type: 'bar',
+    data: { labels, datasets },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: { position: 'bottom', labels: { color: '#11253f', usePointStyle: true, pointStyle: 'circle', boxWidth: 8, boxHeight: 8, padding: 16, font: { weight: '600', size: 11.5 } } },
+        tooltip: Object.assign(richTooltip(), { mode: 'index', intersect: false })
+      },
+      scales: {
+        x: { stacked: true, ticks: { color: '#5c6b80', font: { size: 11 } }, grid: { display: false } },
+        y: { stacked: true, beginAtZero: true, ticks: { color: '#5c6b80', precision: 0 }, grid: { color: '#e4e4e4' } }
+      }
+    }
+  });
+  document.getElementById('statusGeralCountLabel').textContent = rows.length + ' ações no total (soma das duas séries)';
+}
+
+function renderChartResponsavel() {
+  const rows = getFiltered();
+  const counts = new Map();
+  rows.forEach(r => { const resp = r['Responsável'] || '—'; counts.set(resp, (counts.get(resp) || 0) + 1); });
+  let entries = [...counts.entries()].sort((a, b) => b[1] - a[1]);
+  const TOP_N = 8;
+  let labels, values;
+  if (entries.length > TOP_N) {
+    const top = entries.slice(0, TOP_N);
+    const outrosTotal = entries.slice(TOP_N).reduce((s, e) => s + e[1], 0);
+    labels = top.map(e => e[0]).concat(['Outros']);
+    values = top.map(e => e[1]).concat([outrosTotal]);
+  } else {
+    labels = entries.map(e => e[0]);
+    values = entries.map(e => e[1]);
+  }
+  const total = rows.length;
+
+  destroyChart('responsavel');
+  const ctx = document.getElementById('chartResponsavel').getContext('2d');
+  charts.responsavel = new Chart(ctx, {
+    type: 'bar',
+    data: { labels, datasets: [{ data: values, backgroundColor: '#1a4d85', borderRadius: 6, maxBarThickness: 22 }] },
+    options: {
+      indexAxis: 'y', responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: Object.assign(richTooltip(), { callbacks: {
+          label: (c) => { const pct = total ? ((c.raw / total) * 100).toFixed(1) : '0.0'; return ` ${c.raw} ações (${pct}%)`; }
+        } })
+      },
+      scales: {
+        x: { beginAtZero: true, ticks: { color: '#5c6b80', precision: 0 }, grid: { color: '#e4e4e4' } },
+        y: { ticks: { color: '#11253f', font: { size: 10.5, weight: '600' } }, grid: { display: false } }
+      }
+    }
+  });
+  document.getElementById('responsavelCountLabel').textContent = entries.length + ' responsável(is) distintos nos filtros ativos';
+}
+
+/* ================= EAP catalog ================= */
+function renderCatalog() {
+  let rows = RAW_EAP;
+  if (filterState.bloco) rows = rows.filter(r => r.blocoKey === filterState.bloco);
+  const box = document.getElementById('catalogList');
+  const sub = document.getElementById('catalogSub');
+  sub.textContent = filterState.bloco
+    ? `${rows.length} entregas do ${blocoDisplayLabel(filterState.bloco)}`
+    : `${rows.length} entregas catalogadas nos 6 blocos`;
+  box.innerHTML = rows.length ? rows.map(r => `
+    <div class="catalog-item">
+      <div class="cat-bloco">${escapeHtml(blocoDisplayLabel(r.blocoKey))}</div>
+      <div class="cat-entrega">${escapeHtml(r['Entrega'])}</div>
+      <div class="cat-desc">${escapeHtml(r['Descrição'])}</div>
+    </div>`).join('') : '<div class="catalog-empty">Nenhuma entrega catalogada para este filtro.</div>';
+}
+
+/* ================= Table ================= */
+function statusBadgeHtml(status, kind) {
+  let cls = 'nao-iniciado';
+  if (kind === 'acao') cls = status === 'Concluído' ? 'concluido' : 'nao-iniciado';
+  else cls = status === 'Em andamento' ? 'andamento' : 'nao-iniciado';
+  return `<span class="status-badge ${cls}">${escapeHtml(status)}</span>`;
+}
+function renderTable() {
+  // Ordena pela numeração de bloco EXIBIDA no painel (1 a 6, já reordenada), não pela
+  // ordem bruta das linhas na planilha; dentro do mesmo bloco preserva a ordem original.
+  const rows = getFiltered().sort((a, b) => (BLOCO_DISPLAY_NUM[a.blocoKey] || 99) - (BLOCO_DISPLAY_NUM[b.blocoKey] || 99));
+  const container = document.getElementById('tableAcoesContainer');
+  const data = rows.map(r => [
+    blocoDisplayLabel(r.blocoKey),
+    r['Entrega'],
+    r['Ação'],
+    r.statusAcaoNorm,
+    r.statusGeralNorm,
+    r['Responsável'],
+    r['Documento que valida a conclusão'],
+    r['Predecessora']
+  ]);
+  if (tableGrid) {
+    tableGrid.updateConfig({ data }).forceRender();
+  } else {
+    tableGrid = new gridjs.Grid({
+      columns: [
+        { name: 'Bloco', width: '170px' },
+        { name: 'Entrega', width: '170px' },
+        { name: 'Ação', width: '420px' },
+        { name: 'Status da Ação', width: '120px', formatter: (cell) => gridjs.html(statusBadgeHtml(cell, 'acao')) },
+        { name: 'Status Geral da Entrega', width: '140px', formatter: (cell) => gridjs.html(statusBadgeHtml(cell, 'geral')) },
+        { name: 'Responsável', width: '170px' },
+        { name: 'Documento', width: '200px' },
+        { name: 'Predecessora', width: '140px' }
+      ],
+      data,
+      search: true,
+      sort: true,
+      pagination: { limit: 12 },
+      className: { table: 'gridjs-table' }
+    }).render(container);
+  }
+  document.getElementById('tableSub').textContent = `${rows.length} de ${RAW_CRONO.length} ações`;
+}
+
+/* ================= Regulamentações ================= */
+function tipoAtoBadgeHtml(tipo) {
+  return `<span class="status-badge andamento">${escapeHtml(tipo)}</span>`;
+}
+function renderChartRegTema() {
+  const rows = getFilteredReg({ ignoreTema: true });
+  const counts = new Map();
+  rows.forEach(r => { const t = r['Tema'] || '—'; counts.set(t, (counts.get(t) || 0) + 1); });
+  const entries = [...counts.entries()].sort((a, b) => b[1] - a[1]);
+  const total = rows.length;
+  const labels = entries.map(e => e[0]);
+  const values = entries.map(e => e[1]);
+  const colors = labels.map(t => {
+    const c = REG_TEMA_COLORS[t] || '#5c6b80';
+    return filterStateReg.tema && filterStateReg.tema !== t ? (c + '55') : c;
+  });
+
+  destroyChart('regTema');
+  const ctx = document.getElementById('chartRegTema').getContext('2d');
+  charts.regTema = new Chart(ctx, {
+    type: 'bar',
+    data: { labels, datasets: [{ data: values, backgroundColor: colors, borderRadius: 6, maxBarThickness: 30 }] },
+    options: {
+      indexAxis: 'y', responsive: true, maintainAspectRatio: false,
+      onClick: (evt, els) => {
+        if (!els.length) return;
+        const t = labels[els[0].index];
+        filterStateReg.tema = (filterStateReg.tema === t) ? '' : t;
+        setTimeout(renderRegAll, 0);
+      },
+      plugins: {
+        legend: { display: false },
+        tooltip: Object.assign(richTooltip(), { callbacks: {
+          label: (c) => { const pct = total ? ((c.raw / total) * 100).toFixed(1) : '0.0'; return ` ${c.raw} regulamentações (${pct}%)`; }
+        } })
+      },
+      scales: {
+        x: { beginAtZero: true, ticks: { color: '#5c7183', precision: 0 }, grid: { color: '#e4e4e4' } },
+        y: { ticks: { color: '#10202f', font: { size: 11.5, weight: '600' } }, grid: { display: false } }
+      }
+    }
+  });
+  document.getElementById('regTemaCountLabel').textContent = total + ' regulamentações consideradas neste gráfico';
+}
+
+function renderChartRegTipoAto() {
+  const rows = getFilteredReg({ ignoreTipoAto: true });
+  const counts = new Map();
+  rows.forEach(r => { const t = r['Tipo de ato'] || '—'; counts.set(t, (counts.get(t) || 0) + 1); });
+  const entries = [...counts.entries()].sort((a, b) => b[1] - a[1]);
+  const total = rows.length;
+  const labels = entries.map(e => e[0]);
+  const palette = ['#1a4d85', '#a3791f', '#8b3a3a', '#2f6f62', '#5b4b8a'];
+  const colors = labels.map((t, i) => {
+    const c = palette[i % palette.length];
+    return filterStateReg.tipoAto && filterStateReg.tipoAto !== t ? (c + '55') : c;
+  });
+
+  destroyChart('regTipoAto');
+  const ctx = document.getElementById('chartRegTipoAto').getContext('2d');
+  charts.regTipoAto = new Chart(ctx, {
+    type: 'doughnut',
+    data: { labels, datasets: [{ data: entries.map(e => e[1]), backgroundColor: colors, borderColor: '#f5f5f5', borderWidth: 2 }] },
+    options: {
+      responsive: true, maintainAspectRatio: false, cutout: '62%',
+      onClick: (evt, els) => {
+        if (!els.length) return;
+        const t = labels[els[0].index];
+        filterStateReg.tipoAto = (filterStateReg.tipoAto === t) ? '' : t;
+        setTimeout(renderRegAll, 0);
+      },
+      plugins: {
+        legend: { position: 'bottom', labels: { color: '#10202f', usePointStyle: true, pointStyle: 'circle', boxWidth: 8, boxHeight: 8, padding: 16, font: { weight: '600', size: 11.5 } } },
+        tooltip: Object.assign(richTooltip(), { callbacks: {
+          label: (c) => { const pct = total ? ((c.raw / total) * 100).toFixed(1) : '0.0'; return ` ${c.label}: ${c.raw} (${pct}%)`; }
+        } })
+      }
+    }
+  });
+  document.getElementById('regTipoAtoCountLabel').textContent = total + ' regulamentações consideradas neste gráfico';
+}
+
+const REG_MODALIDADE_ORDER = ['Critérios', 'Processo', 'Funcionamento'];
+
+function renderTableReg() {
+  const rows = getFilteredReg();
+  const container = document.getElementById('tableRegContainer');
+  const data = rows.map(r => [
+    r['Tema'],
+    r['Subtema'],
+    r['Modalidade'],
+    r['Tipo de ato'],
+    r['Tema que requer regulamentação'],
+    r['Dispositivos principais'],
+    r['O que precisa ser regulado'],
+    r['Impactos econômicos positivos'],
+    r['Impactos econômicos negativos/riscos']
+  ]);
+  if (tableGridReg) {
+    tableGridReg.updateConfig({ data }).forceRender();
+  } else {
+    tableGridReg = new gridjs.Grid({
+      columns: [
+        { name: 'Tema', width: '150px' },
+        { name: 'Subtema', width: '170px' },
+        { name: 'Modalidade', width: '150px' },
+        { name: 'Tipo de Ato', width: '140px', formatter: (cell) => gridjs.html(tipoAtoBadgeHtml(cell)) },
+        { name: 'Tema que Requer Regulamentação', width: '260px' },
+        { name: 'Dispositivos Principais', width: '200px' },
+        { name: 'O que Precisa ser Regulado', width: '340px' },
+        { name: 'Impactos Positivos', width: '300px' },
+        { name: 'Impactos Negativos/Riscos', width: '300px' }
+      ],
+      data,
+      search: true,
+      sort: true,
+      pagination: { limit: 10 },
+      className: { table: 'gridjs-table' }
+    }).render(container);
+  }
+  document.getElementById('regTableSub').textContent = `${rows.length} de ${RAW_REG.length} regulamentações`;
+}
+
+function populateRegFilterSelects() {
+  const temaSel = document.getElementById('filterRegTema');
+  const temas = [...new Set(RAW_REG.map(r => r['Tema']))].sort((a, b) => a.localeCompare(b, 'pt-BR'));
+  temaSel.innerHTML = '<option value="">Todos os temas</option>' + temas.map(t => `<option value="${escapeHtml(t)}">${escapeHtml(t)}</option>`).join('');
+
+  const tipoSel = document.getElementById('filterRegTipoAto');
+  const tipos = [...new Set(RAW_REG.map(r => r['Tipo de ato']))].sort((a, b) => a.localeCompare(b, 'pt-BR'));
+  tipoSel.innerHTML = '<option value="">Todos os tipos</option>' + tipos.map(t => `<option value="${escapeHtml(t)}">${escapeHtml(t)}</option>`).join('');
+
+  const modSel = document.getElementById('filterRegModalidade');
+  modSel.innerHTML = '<option value="">Todas as modalidades</option>' + REG_MODALIDADE_ORDER.map(m => `<option value="${escapeHtml(m)}">${escapeHtml(m)}</option>`).join('');
+}
+function syncRegSelects() {
+  document.getElementById('filterRegTema').value = filterStateReg.tema;
+  document.getElementById('filterRegTipoAto').value = filterStateReg.tipoAto;
+  document.getElementById('filterRegModalidade').value = filterStateReg.modalidade;
+}
+function wireRegFilterSelects() {
+  document.getElementById('filterRegTema').addEventListener('change', (e) => { filterStateReg.tema = e.target.value; renderRegAll(); });
+  document.getElementById('filterRegTipoAto').addEventListener('change', (e) => { filterStateReg.tipoAto = e.target.value; renderRegAll(); });
+  document.getElementById('filterRegModalidade').addEventListener('change', (e) => { filterStateReg.modalidade = e.target.value; renderRegAll(); });
+  document.getElementById('filterRegResetBtn').addEventListener('click', () => {
+    filterStateReg.tema = ''; filterStateReg.tipoAto = ''; filterStateReg.modalidade = ''; renderRegAll();
+  });
+}
+function updateRegFilterCountLabel() {
+  const rows = getFilteredReg();
+  const anyFilter = filterStateReg.tema || filterStateReg.tipoAto || filterStateReg.modalidade;
+  document.getElementById('filterRegCountLabel').innerHTML = anyFilter
+    ? `Mostrando <strong>${rows.length}</strong> de ${RAW_REG.length} regulamentações`
+    : `<strong>${RAW_REG.length}</strong> regulamentações no total`;
+}
+function renderRegAll() {
+  syncRegSelects();
+  renderChartRegTema();
+  renderChartRegTipoAto();
+  renderTableReg();
+  updateRegFilterCountLabel();
+  renderRegDetail();
+}
+
+/* ---------------- Regulamentações: quadro de detalhamento (Tema + Subtema) ---------------- */
+function populateRegDetailTemaSelect() {
+  const sel = document.getElementById('filterRegDetailTema');
+  const temas = [...new Set(RAW_REG.map(r => r['Tema']).filter(Boolean))].sort((a, b) => a.localeCompare(b, 'pt-BR'));
+  sel.innerHTML = '<option value="">Selecione um tema</option>' + temas.map(t => `<option value="${escapeHtml(t)}">${escapeHtml(t)}</option>`).join('');
+}
+function populateRegDetailSubtemaSelect() {
+  const sel = document.getElementById('filterRegDetailSubtema');
+  const tema = filterStateRegDetail.tema;
+  const pool = tema ? RAW_REG.filter(r => r['Tema'] === tema) : RAW_REG;
+  const subtemas = [...new Set(pool.map(r => r['Subtema']).filter(Boolean))].sort((a, b) => a.localeCompare(b, 'pt-BR'));
+  sel.innerHTML = '<option value="">Selecione um subtema</option>' + subtemas.map(s => `<option value="${escapeHtml(s)}">${escapeHtml(s)}</option>`).join('');
+}
+function populateRegDetailSelects() {
+  populateRegDetailTemaSelect();
+  populateRegDetailSubtemaSelect();
+}
+function syncRegDetailSelects() {
+  document.getElementById('filterRegDetailTema').value = filterStateRegDetail.tema;
+  document.getElementById('filterRegDetailSubtema').value = filterStateRegDetail.subtema;
+}
+function wireRegDetailSelects() {
+  document.getElementById('filterRegDetailTema').addEventListener('change', (e) => {
+    filterStateRegDetail.tema = e.target.value;
+    filterStateRegDetail.subtema = '';
+    populateRegDetailSubtemaSelect();
+    renderRegAll();
+  });
+  document.getElementById('filterRegDetailSubtema').addEventListener('change', (e) => {
+    filterStateRegDetail.subtema = e.target.value;
+    renderRegAll();
+  });
+  document.getElementById('filterRegDetailResetBtn').addEventListener('click', () => {
+    filterStateRegDetail.tema = '';
+    filterStateRegDetail.subtema = '';
+    populateRegDetailSubtemaSelect();
+    renderRegAll();
+  });
+}
+function regDetailField(label, value) {
+  const v = (value && value !== '-' && value !== '\\-') ? escapeHtml(value) : '—';
+  return `<div class="reg-detail-field"><div class="rdf-label">${escapeHtml(label)}</div><div class="rdf-value">${v}</div></div>`;
+}
+function renderRegDetail() {
+  syncRegDetailSelects();
+  const container = document.getElementById('regDetailContent');
+  const { tema, subtema } = filterStateRegDetail;
+  if (!tema || !subtema) {
+    container.innerHTML = '<div class="reg-detail-placeholder">Selecione um Tema e um Subtema acima para ver os detalhes da regulamentação.</div>';
+    return;
+  }
+  const rows = RAW_REG.filter(r => r['Tema'] === tema && r['Subtema'] === subtema);
+  if (!rows.length) {
+    container.innerHTML = '<div class="reg-detail-placeholder">Nenhuma regulamentação encontrada para esse Tema e Subtema.</div>';
+    return;
+  }
+  container.innerHTML = rows.map((r, i) => `
+    <div class="reg-detail-record">
+      ${rows.length > 1 ? `<span class="reg-detail-record-tag">Registro ${i + 1} de ${rows.length}</span>` : ''}
+      <div class="reg-detail-row">
+        ${regDetailField('Tema que requer regulamentação', r['Tema que requer regulamentação'])}
+        ${regDetailField('Tipo de ato', r['Tipo de ato'])}
+      </div>
+      <div class="reg-detail-row">
+        ${regDetailField('Dispositivos principais', r['Dispositivos principais'])}
+        ${regDetailField('O que precisa ser regulado', r['O que precisa ser regulado'])}
+      </div>
+      <div class="reg-detail-row">
+        ${regDetailField('Impactos econômicos positivos', r['Impactos econômicos positivos'])}
+        ${regDetailField('Impactos econômicos negativos/riscos', r['Impactos econômicos negativos/riscos'])}
+      </div>
+    </div>
+  `).join('');
+}
+
+/* ================= Filter selects ================= */
+function populateFilterSelects() {
+  const blocoSel = document.getElementById('filterBloco');
+  blocoSel.innerHTML = '<option value="">Todos os blocos</option>' +
+    BLOCO_ORDER.map(k => `<option value="${escapeHtml(k)}">${escapeHtml(blocoDisplayLabel(k))}</option>`).join('');
+}
+function populateEntregaSelect() {
+  const entregaSel = document.getElementById('filterEntrega');
+  const rows = filterState.bloco ? RAW_CRONO.filter(r => r.blocoKey === filterState.bloco) : RAW_CRONO;
+  const entregas = [...new Set(rows.map(r => r['Entrega']))].sort((a, b) => a.localeCompare(b, 'pt-BR'));
+  entregaSel.innerHTML = '<option value="">Todas as entregas</option>' +
+    entregas.map(e => `<option value="${escapeHtml(e)}">${escapeHtml(e)}</option>`).join('');
+}
+function syncSelects() {
+  document.getElementById('filterBloco').value = filterState.bloco;
+  populateEntregaSelect();
+  document.getElementById('filterEntrega').value = filterState.entrega;
+  document.getElementById('filterStatusAcao').value = filterState.status;
+}
+function wireFilterSelects() {
+  document.getElementById('filterBloco').addEventListener('change', (e) => {
+    filterState.bloco = e.target.value; filterState.entrega = ''; renderAll();
+  });
+  document.getElementById('filterEntrega').addEventListener('change', (e) => {
+    filterState.entrega = e.target.value; renderAll();
+  });
+  document.getElementById('filterStatusAcao').addEventListener('change', (e) => {
+    filterState.status = e.target.value; renderAll();
+  });
+  document.getElementById('filterResetBtn').addEventListener('click', () => {
+    filterState.bloco = ''; filterState.entrega = ''; filterState.status = ''; renderAll();
+  });
+  document.getElementById('eapResetBtn').addEventListener('click', () => {
+    filterState.bloco = ''; filterState.entrega = ''; renderAll();
+  });
+}
+
+/* ================= Filter count label ================= */
+function updateFilterCountLabel() {
+  const rows = getFiltered();
+  const anyFilter = filterState.bloco || filterState.entrega || filterState.status;
+  document.getElementById('filterCountLabel').innerHTML = anyFilter
+    ? `Mostrando <strong>${rows.length}</strong> de ${RAW_CRONO.length} ações`
+    : `<strong>${RAW_CRONO.length}</strong> ações no total`;
+}
+
+/* ================= Header stats ================= */
+function renderHeaderStats() {
+  const total = RAW_CRONO.length;
+  const concluidas = RAW_CRONO.filter(r => r.statusAcaoNorm === 'Concluído').length;
+  const pct = total ? Math.round((concluidas / total) * 1000) / 10 : 0;
+  const entregasDistintas = new Set(RAW_CRONO.map(r => r.blocoKey + '||' + r['Entrega'])).size;
+  document.getElementById('headerStats').textContent =
+    `6 blocos · ${entregasDistintas} entregas operacionais · ${total} ações totais · ${concluidas} concluídas (${pct}%)`;
+}
+
+/* ================= Orchestration ================= */
+function renderAll() {
+  renderEapTree();
+  syncSelects();
+  renderChartBloco();
+  renderChartStatus();
+  renderChartStatusGeral();
+  renderChartResponsavel();
+  renderCatalog();
+  renderTable();
+  updateFilterCountLabel();
+}
+
+/* ================= Load ================= */
+// A ponte window.cowork é injetada pelo app Cowork de forma assíncrona; em alguns
+// carregamentos o script deste artifact roda antes dela existir. Em vez de falhar de
+// imediato, aguardamos (com timeout) até ela ficar disponível antes de buscar os dados.
+function waitForCoworkBridge(onReady, attemptsLeft) {
+  if (attemptsLeft === undefined) attemptsLeft = 100; // até ~5s (100 x 50ms)
+  if (window.cowork && typeof window.cowork.callMcpTool === 'function') { onReady(); return; }
+  if (attemptsLeft <= 0) {
+    document.getElementById('loading').style.display = 'none';
+    const box = document.getElementById('errorBox');
+    box.style.display = 'block';
+    box.textContent = 'Não foi possível conectar ao Cowork (a ponte window.cowork não ficou disponível). Feche e reabra este artifact.';
+    return;
+  }
+  setTimeout(() => waitForCoworkBridge(onReady, attemptsLeft - 1), 50);
+}
+
+async function loadData() {
+  try {
+    const res = await window.cowork.callMcpTool(READ_TOOL, { fileId: FILE_ID });
+    if (res.isError) throw new Error('Falha ao ler a planilha.');
+    const data = res.structuredContent ?? JSON.parse(res.content[0].text);
+    const text = data.fileContent || '';
+    const tables = parseAllTables(text);
+    if (!tables.length) throw new Error('Nenhuma tabela encontrada na planilha.');
+
+    const eapTable = findTableByHeader(tables, ['Bloco', 'Entrega', 'Descrição']);
+    const cronoTable = findTableByHeader(tables, ['Bloco', 'Entrega', 'Status geral da entrega', 'Ação', 'Status da ação', 'Documento que valida a conclusão', 'Responsável', 'Predecessora']);
+    const regTable = findTableByHeader(tables, ['Tema', 'Subtema', 'Modalidade', 'Tipo de ato']);
+    if (!eapTable) throw new Error('Aba "EAP por bloco" não encontrada.');
+    if (!cronoTable) throw new Error('Aba "Cronograma de ações" não encontrada.');
+    if (!regTable) throw new Error('Aba "Regulamentações" não encontrada.');
+
+    prepareData(eapTable, cronoTable);
+    populateFilterSelects();
+    wireFilterSelects();
+
+    prepareReg(regTable);
+    populateRegFilterSelects();
+    wireRegFilterSelects();
+    populateRegDetailSelects();
+    wireRegDetailSelects();
+
+    document.getElementById('loading').style.display = 'none';
+    document.getElementById('content').style.display = 'block';
+    document.getElementById('subtitleUpdated').textContent = `Última atualização: ${fmtDateTimePtBr()}`;
+
+    renderHeaderStats();
+    renderAll();
+    renderRegAll();
+  } catch (err) {
+    document.getElementById('loading').style.display = 'none';
+    const box = document.getElementById('errorBox');
+    box.style.display = 'block';
+    box.textContent = 'Não foi possível carregar os dados do Google Sheets: ' + err.message;
+  }
+}
+
+waitForCoworkBridge(loadData);
+</script>
+</body>
+</html>
