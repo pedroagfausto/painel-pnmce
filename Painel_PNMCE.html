@@ -1,0 +1,1326 @@
+<!DOCTYPE html>
+<html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Painel PNMCE</title></head><body>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.5.0/dist/chart.umd.js" integrity="sha384-iU8HYtnGQ8Cy4zl7gbNMOhsDTTKX02BTXptVP/vqAWIaTfM7isw76iyZCsjL2eVi" crossorigin="anonymous"></script>
+<style>
+  :root {
+    color-scheme: light;
+    --navy: #113b67;
+    --navy-2: #0c2c4e;
+    --navy-3: #1a4d85;
+    --gold: #f2c230;
+    --gold-2: #f7d666;
+    --card: #f5f5f5;
+    --card-2: #ffffff;
+    --text-dark: #11253f;
+    --text-muted: #5c6b80;
+    --text-onnavy: #f5f7fa;
+    --text-onnavy-muted: #adc0da;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    font-family: 'Inter', -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    background-color: var(--navy);
+    background-image:
+      repeating-linear-gradient(135deg, rgba(255,255,255,0.025) 0px, rgba(255,255,255,0.025) 1px, transparent 1px, transparent 13px),
+      radial-gradient(circle at 10% 0%, rgba(242,194,48,0.08) 0%, transparent 40%),
+      radial-gradient(circle at 95% 30%, rgba(255,255,255,0.05) 0%, transparent 45%);
+    color: var(--text-dark);
+    min-height: 100vh;
+    padding: 32px 40px 64px;
+  }
+  .wrap { max-width: 1360px; margin: 0 auto; }
+  a { color: inherit; }
+
+  /* ---------- Header ---------- */
+  header { margin-bottom: 30px; animation: fadeInUp .5s ease both; }
+  .header-top { display: flex; justify-content: space-between; align-items: flex-end; flex-wrap: wrap; gap: 16px; }
+  .title-block h1 {
+    font-size: 38px; font-weight: 800; letter-spacing: -0.01em; line-height: 1.15;
+    font-stretch: condensed; text-transform: uppercase; color: var(--text-onnavy);
+  }
+  .title-block .subtitle { margin-top: 8px; font-size: 13px; color: var(--text-onnavy-muted); max-width: 780px; line-height: 1.5; }
+  .title-block .subtitle-updated { margin-top: 6px; font-size: 12.5px; color: var(--text-onnavy-muted); }
+  .header-meta { margin-top: 4px; font-size: 12.5px; color: var(--text-onnavy-muted); }
+  .gold-rule { height: 3px; margin-top: 16px; border-radius: 2px; background: linear-gradient(90deg, var(--gold) 0%, rgba(242,194,48,0.15) 70%, transparent 100%); }
+  .live-badge {
+    display: inline-flex; align-items: center; gap: 7px;
+    font-size: 11.5px; font-weight: 800; letter-spacing: .04em; color: var(--navy-2);
+    background: var(--gold); padding: 7px 14px; border-radius: 999px; white-space: nowrap;
+  }
+  .live-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--navy-2); animation: pulse 2s infinite; }
+  @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: .3; } }
+
+  /* ---------- Section titles ---------- */
+  .section-title { display: flex; align-items: center; gap: 12px; margin: 8px 0 16px; }
+  .section-title .num {
+    width: 28px; height: 28px; border-radius: 50%; background: var(--gold);
+    color: var(--navy-2); font-weight: 800; font-size: 13px;
+    display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+  }
+  .section-title h2 {
+    font-size: 17px; font-weight: 800; letter-spacing: .02em; text-transform: uppercase;
+    font-stretch: condensed; color: var(--text-onnavy);
+  }
+  .section-title .line { flex: 1; height: 1px; background: linear-gradient(90deg, rgba(242,194,48,0.5), transparent); }
+  .topic-scope { display: block; margin-bottom: 36px; }
+  .sticky-head { position: sticky; top: 14px; z-index: 35; background: var(--navy); padding-top: 2px; margin: 0 -2px; box-shadow: 0 14px 14px -10px rgba(0,0,0,0.35); }
+  .sticky-head .section-title { margin-left: 2px; margin-right: 2px; }
+
+  /* ---------- Top nav & voltar ---------- */
+  .topnav { display: flex; gap: 18px; flex-wrap: wrap; margin-bottom: 30px; animation: fadeInUp .5s ease .05s both; }
+  .topnav-btn {
+    position: relative; display: inline-block; text-decoration: none;
+    background: linear-gradient(180deg, var(--gold-2) 0%, var(--gold) 55%, #dba617 100%);
+    color: var(--navy-2);
+    border: none; border-radius: 10px;
+    padding: 15px 32px; font-size: 14.5px; font-weight: 800; letter-spacing: .04em;
+    text-transform: uppercase; font-stretch: condensed;
+    box-shadow: 0 5px 0 #b5820f, 0 10px 20px rgba(0,0,0,0.4);
+    text-shadow: 0 1px 0 rgba(255,255,255,0.35);
+    transform: translateY(0);
+    transition: transform .12s ease, box-shadow .12s ease, background .2s ease;
+    cursor: pointer;
+  }
+  .topnav-btn::after {
+    content: ""; position: absolute; top: 0; left: 0; right: 0; height: 45%;
+    border-radius: 10px 10px 0 0;
+    background: linear-gradient(180deg, rgba(255,255,255,0.55), rgba(255,255,255,0));
+    pointer-events: none;
+  }
+  .topnav-btn:hover { background: linear-gradient(180deg, #fbe28a 0%, var(--gold-2) 55%, var(--gold) 100%); transform: translateY(-2px); box-shadow: 0 7px 0 #b5820f, 0 14px 24px rgba(0,0,0,0.45); }
+  .topnav-btn:active { transform: translateY(3px); box-shadow: 0 2px 0 #b5820f, 0 4px 10px rgba(0,0,0,0.35); }
+  .voltar-btn { position: fixed; right: 26px; bottom: 34px; z-index: 100; padding: 12px 26px; font-size: 12.5px; box-shadow: 0 5px 0 #b5820f, 0 12px 26px rgba(0,0,0,0.5); }
+  .voltar-btn:hover { box-shadow: 0 7px 0 #b5820f, 0 16px 30px rgba(0,0,0,0.55); }
+
+  /* ---------- Loading / error ---------- */
+  .loading { max-width: 1360px; margin: 60px auto; padding: 40px; text-align: center; color: var(--text-onnavy-muted); }
+  .spinner { width: 34px; height: 34px; border: 3px solid rgba(255,255,255,0.15); border-top-color: var(--gold); border-radius: 50%; margin: 0 auto 14px; animation: spin .9s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .error-box { max-width: 1360px; margin: 40px auto; padding: 24px 28px; color: #ffdad6; background: rgba(179,38,30,0.25); border: 1px solid rgba(255,255,255,0.15); border-radius: 12px; text-align: center; }
+
+  @keyframes fadeInUp { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: translateY(0); } }
+
+  /* ---------- Panel cards (EAP / catalog / table) ---------- */
+  .panel-card { background: var(--card); border-radius: 12px; padding: 22px 24px; box-shadow: 0 10px 24px rgba(0,0,0,0.22); animation: fadeInUp .5s ease both; }
+  .eap-level-label { font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: .05em; margin: 0 0 10px; }
+
+  /* ---------- EAP block pills: square-ish, number on its own top line ---------- */
+  .eap-pills { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 168px)); gap: 12px; margin-bottom: 18px; }
+  #eapEntregaPills { grid-template-columns: repeat(auto-fill, minmax(168px, 186px)); }
+  .eap-pill {
+    position: relative; cursor: pointer;
+    display: flex; flex-direction: column; align-items: flex-start; justify-content: space-between; gap: 8px;
+    text-align: left;
+    background: linear-gradient(180deg, var(--gold-2) 0%, var(--gold) 55%, #dba617 100%);
+    color: var(--navy-2); border: none; border-radius: 10px; padding: 12px 14px 13px;
+    width: 100%; min-height: 104px; min-width: 0;
+    box-shadow: 0 3px 0 #b5820f, 0 6px 12px rgba(0,0,0,0.25);
+    text-shadow: 0 1px 0 rgba(255,255,255,0.3);
+    transition: transform .12s ease, box-shadow .12s ease, background .2s ease;
+  }
+  .eap-pill:hover { transform: translateY(-1px); box-shadow: 0 4px 0 #b5820f, 0 8px 14px rgba(0,0,0,0.3); }
+  .eap-pill .pill-top-row { display: flex; align-items: center; gap: 6px; width: 100%; }
+  .eap-pill .pill-dot { width: 8px; height: 8px; border-radius: 2px; flex-shrink: 0; box-shadow: 0 0 0 1.5px rgba(255,255,255,0.6); }
+  .eap-pill .pill-num { font-size: 12px; font-weight: 800; letter-spacing: .03em; text-transform: uppercase; font-stretch: condensed; }
+  .eap-pill .pill-count { margin-left: auto; background: rgba(17,37,63,0.14); border-radius: 999px; padding: 1px 7px; font-size: 10.5px; color: var(--navy-2); font-weight: 800; }
+  .eap-pill .pill-label { font-size: 12px; font-weight: 700; line-height: 1.25; letter-spacing: .02em; text-transform: uppercase; font-stretch: condensed; opacity: .9; overflow-wrap: anywhere; }
+  .eap-pill.active {
+    background: linear-gradient(180deg, var(--navy-3) 0%, var(--navy) 55%, var(--navy-2) 100%);
+    color: #fff; text-shadow: none; box-shadow: 0 3px 0 #061627, 0 6px 12px rgba(0,0,0,0.35);
+  }
+  .eap-pill.active .pill-count { background: rgba(255,255,255,0.18); color: #fff; }
+  /* Entrega (2nd-level) cards: same square-ish shape, label wraps below the count */
+  .eap-pill.entrega-pill .pill-label { font-size: 12.5px; text-transform: none; font-weight: 800; opacity: 1; letter-spacing: 0; }
+  @media (max-width: 520px) {
+    .eap-pills, #eapEntregaPills { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  }
+
+  .eap-empty-hint { font-size: 12.5px; color: var(--text-muted); padding: 6px 0 2px; }
+  .reset-btn {
+    display: inline-flex; align-items: center; gap: 6px; background: var(--navy); border: none; color: #fff;
+    padding: 9px 16px; border-radius: 8px; font-size: 12.5px; font-weight: 700; cursor: pointer; transition: background .2s ease;
+  }
+  .reset-btn:hover { background: var(--navy-3); }
+
+  /* ---------- Filter bar ---------- */
+  .filters {
+    display: flex; gap: 14px; flex-wrap: wrap; align-items: center;
+    background: var(--card); border-radius: 12px; padding: 16px 20px; margin-bottom: 20px;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+    animation: fadeInUp .5s ease both;
+  }
+  .filter-item { display: flex; flex-direction: column; gap: 6px; }
+  .filter-item label { font-size: 10.5px; text-transform: uppercase; letter-spacing: .06em; color: var(--text-muted); font-weight: 700; }
+  .filter-item select {
+    background: #fff; color: var(--text-dark); border: 1px solid #d7dce3;
+    border-radius: 8px; padding: 9px 14px; font-size: 13px; font-family: inherit;
+    min-width: 200px; cursor: pointer; outline: none; transition: border-color .2s ease;
+  }
+  .filter-item select:hover, .filter-item select:focus { border-color: var(--gold); }
+  .filter-count { margin-left: auto; font-size: 12.5px; color: var(--text-muted); align-self: center; }
+  .filter-count strong { color: var(--navy); }
+
+  /* ---------- Charts ---------- */
+  .charts-grid { display: grid; grid-template-columns: 1.3fr 1fr; gap: 20px; margin-bottom: 20px; }
+  .charts-grid.two-col { grid-template-columns: 1fr 1fr; }
+  @media (max-width: 900px) { .charts-grid, .charts-grid.two-col { grid-template-columns: 1fr; } }
+  .chart-card {
+    background: var(--card); border-radius: 12px; padding: 22px 24px 18px;
+    box-shadow: 0 10px 24px rgba(0,0,0,0.22);
+    transition: transform .25s ease, box-shadow .25s ease;
+    animation: fadeInUp .5s ease both;
+    display: flex; flex-direction: column;
+  }
+  .chart-card:hover { transform: translateY(-3px); box-shadow: 0 16px 32px rgba(0,0,0,0.3); }
+  .chart-card .chart-title { font-size: 14.5px; font-weight: 800; color: var(--navy); text-transform: uppercase; letter-spacing: .01em; font-stretch: condensed; margin-bottom: 3px; }
+  .chart-card .chart-caption { font-size: 11.5px; color: var(--text-muted); margin: 0 0 14px; }
+  .chart-card .chart-box { position: relative; flex: 1; min-height: 230px; }
+  .chart-card .chart-count-label { font-size: 11px; color: var(--text-muted); text-align: right; margin-top: 8px; }
+
+  /* ---------- Catalog ---------- */
+  .catalog-list { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; max-height: 420px; overflow-y: auto; padding-right: 4px; }
+  @media (max-width: 900px) { .catalog-list { grid-template-columns: 1fr; } }
+  .catalog-item { border-radius: 10px; padding: 12px 14px; background: var(--card-2); box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+  .catalog-item .cat-bloco { display: inline-flex; font-size: 10px; font-weight: 800; color: #fff; background: var(--navy-3); text-transform: uppercase; letter-spacing: .03em; padding: 2px 9px; border-radius: 999px; margin-bottom: 6px; }
+  .catalog-item .cat-entrega { font-size: 12.5px; font-weight: 700; color: var(--navy); margin-bottom: 3px; }
+  .catalog-item .cat-desc { font-size: 11.5px; color: var(--text-muted); line-height: 1.4; }
+  .catalog-empty { font-size: 12.5px; color: var(--text-muted); padding: 20px; text-align: center; }
+
+  /* ---------- Status badges ---------- */
+  .status-badge { display: inline-block; padding: 2px 9px; border-radius: 999px; font-size: 10.5px; font-weight: 800; letter-spacing: .01em; }
+  .status-badge.concluido { background: rgba(47,111,98,0.15); color: #2f6f62; }
+  .status-badge.nao-iniciado { background: #eef1f5; color: #5c6b80; }
+  .status-badge.andamento { background: rgba(163,121,31,0.18); color: #8a6b0f; }
+
+  .reg-detail-placeholder { color: var(--text-muted); font-size: 13px; font-style: italic; padding: 24px 4px; text-align: center; }
+  .reg-detail-record { border-top: 1px solid rgba(17,37,63,0.08); padding-top: 16px; margin-top: 16px; }
+  .reg-detail-record:first-child { border-top: none; margin-top: 0; padding-top: 0; }
+  .reg-detail-record-tag { display: inline-flex; font-size: 10px; font-weight: 800; color: #fff; background: var(--navy-3); text-transform: uppercase; letter-spacing: .03em; padding: 2px 9px; border-radius: 999px; margin-bottom: 10px; }
+  .reg-detail-row { display: flex; flex-wrap: wrap; border-bottom: 1px solid rgba(17,37,63,0.08); padding-bottom: 14px; margin-bottom: 14px; }
+  .reg-detail-row:last-child { border-bottom: none; padding-bottom: 0; margin-bottom: 0; }
+  .reg-detail-field { flex: 1 1 260px; min-width: 0; padding-right: 22px; }
+  .reg-detail-field:not(:last-child) { border-right: 1px solid rgba(17,37,63,0.08); }
+  .reg-detail-field:not(:first-child) { padding-left: 22px; }
+  .reg-detail-field .rdf-label { font-size: 10.5px; text-transform: uppercase; letter-spacing: .05em; color: var(--text-muted); font-weight: 700; margin-bottom: 5px; }
+  .reg-detail-field .rdf-value { font-size: 13px; color: var(--text-dark); line-height: 1.55; white-space: pre-line; }
+
+  /* ---------- Simple table (hand-rolled: search, sort, paginate) ---------- */
+  .simple-table { color: var(--text-dark); font-family: inherit; }
+  .st-toolbar { margin-bottom: 10px; }
+  .st-search {
+    width: 100%; max-width: 320px; background: #fff; color: var(--text-dark); border: 1px solid #d7dce3;
+    border-radius: 8px; padding: 8px 12px; font-size: 13px; font-family: inherit; outline: none; transition: border-color .2s ease;
+  }
+  .st-search:focus { border-color: var(--gold); }
+  .st-scroll { border: 1px solid #e1e7ee; border-radius: 10px; overflow-x: auto; }
+  table.st-table { background: transparent; width: 100%; border-collapse: collapse; font-size: 12.5px; }
+  .st-table th {
+    background: var(--navy); color: #fff; font-size: 11px; text-transform: uppercase; letter-spacing: .05em;
+    font-weight: 700; text-align: left; padding: 12px 16px; cursor: pointer; user-select: none; white-space: nowrap;
+  }
+  .st-table th:hover { background: var(--navy-3); color: var(--gold); }
+  .st-sort-ind { display: inline-block; margin-left: 4px; font-size: 9px; }
+  .st-table td { background: #fff; border-bottom: 1px solid #edf0f4; padding: 12px 16px; font-size: 13px; vertical-align: top; }
+  .st-table tr:hover td { background: #fbf6e6; }
+  .st-table td.st-empty { text-align: center; color: var(--text-muted); font-style: italic; padding: 24px; }
+  .st-footer { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; margin-top: 10px; }
+  .st-summary { font-size: 12.5px; color: var(--text-onnavy-muted); }
+  .st-pager { display: flex; align-items: center; gap: 8px; }
+  .st-pager button {
+    background: #fff; border: 1px solid #d7dce3; color: var(--text-dark); border-radius: 8px;
+    width: 30px; height: 30px; font-size: 14px; cursor: pointer;
+  }
+  .st-pager button:hover:not(:disabled) { background: #f1f3f6; }
+  .st-pager button:disabled { opacity: .4; cursor: default; }
+  .st-page-label { font-size: 12.5px; color: var(--text-onnavy-muted); min-width: 92px; text-align: center; }
+
+  footer.page-footer { text-align: center; font-size: 11.5px; color: var(--text-onnavy-muted); padding: 10px 0 6px; }
+</style>
+<div class="wrap">
+
+  <a href="#topo" class="topnav-btn voltar-btn" id="btnVoltar">Voltar</a>
+
+  <header id="topo">
+    <div class="header-top">
+      <div class="title-block">
+        <h1>PNMCE<br>Painel de Implementação</h1>
+        <div class="subtitle">Política Nacional para Industrialização de Minerais Críticos e Estratégicos — EAP, blocos de entrega e cronograma de ações. Fonte: planilha "PNMCE_dados_painel" (abas "EAP por bloco" e "Cronograma de ações")</div>
+        <div class="subtitle-updated" id="subtitleUpdated">Carregando dados...</div>
+        <p class="header-meta" id="headerStats"></p>
+      </div>
+      <div class="live-badge">Versão estática · 24/09/2026</div>
+    </div>
+    <div class="gold-rule"></div>
+  </header>
+
+  <div id="loading" class="loading"><div class="spinner"></div>Carregando dados...</div>
+  <div id="errorBox" class="error-box" style="display:none;"></div>
+
+  <div id="content" style="display:none;">
+
+    <div class="topnav">
+      <a href="#sec-eap" class="topnav-btn">EAP</a>
+      <a href="#sec-graficos" class="topnav-btn">Gráficos</a>
+      <a href="#sec-catalogo" class="topnav-btn">Catálogo</a>
+      <a href="#sec-tabela" class="topnav-btn">Ações Detalhadas</a>
+      <a href="#sec-regulamentacoes" class="topnav-btn">Regulamentações</a>
+      <a href="#sec-pontos-focais" class="topnav-btn">Pontos Focais</a>
+    </div>
+
+    <div class="topic-scope">
+      <div class="sticky-head">
+        <div class="section-title" id="sec-eap"><span class="num">1</span><h2>Estrutura Analítica de Projeto (EAP)</h2><span class="line"></span></div>
+      </div>
+      <div class="panel-card">
+        <div class="eap-level-label">Blocos (nível 1) — clique para filtrar</div>
+        <div class="eap-pills" id="eapBlocoPills"></div>
+        <div class="eap-level-label">Entregas do bloco selecionado (nível 2)</div>
+        <div class="eap-pills" id="eapEntregaPills"></div>
+        <div id="eapEmptyHint" class="eap-empty-hint">Selecione um bloco acima para ver suas entregas.</div>
+        <button class="reset-btn" id="eapResetBtn" style="display:none; margin-top:8px;">✕ Limpar seleção da EAP</button>
+      </div>
+    </div>
+
+    <div class="topic-scope">
+      <div class="sticky-head">
+        <div class="section-title" id="sec-graficos"><span class="num">2</span><h2>Gráficos</h2><span class="line"></span></div>
+      </div>
+      <div class="filters">
+        <div class="filter-item"><label>Bloco</label><select id="filterBloco"><option value="">Todos os blocos</option></select></div>
+        <div class="filter-item"><label>Entrega</label><select id="filterEntrega"><option value="">Todas as entregas</option></select></div>
+        <div class="filter-item"><label>Status da Ação</label>
+          <select id="filterStatusAcao">
+            <option value="">Todos os status</option>
+            <option value="Concluído">Concluído</option>
+            <option value="Não iniciado">Não iniciado</option>
+          </select>
+        </div>
+        <button class="reset-btn" id="filterResetBtn">✕ Limpar filtros</button>
+        <span class="filter-count" id="filterCountLabel"></span>
+      </div>
+      <div class="charts-grid">
+        <div class="chart-card">
+          <div class="chart-title">Ações por Bloco</div>
+          <div class="chart-caption">Filtrado pelo status selecionado; clique em uma barra para filtrar por bloco</div>
+          <div class="chart-box"><canvas id="chartBloco"></canvas></div>
+          <div class="chart-count-label" id="blocoCountLabel"></div>
+        </div>
+        <div class="chart-card">
+          <div class="chart-title">Ações por Status da Ação</div>
+          <div class="chart-caption">Filtrado por bloco/entrega selecionados; clique em uma fatia para filtrar por status</div>
+          <div class="chart-box"><canvas id="chartStatus"></canvas></div>
+          <div class="chart-count-label" id="statusCountLabel"></div>
+        </div>
+      </div>
+      <div class="charts-grid two-col">
+        <div class="chart-card">
+          <div class="chart-title">Status Geral da Entrega, por Bloco</div>
+          <div class="chart-caption">Composição de "em andamento", "não iniciado" (e "não informado", quando a célula está vazia na planilha) nas entregas de cada bloco, considerando os filtros ativos</div>
+          <div class="chart-box"><canvas id="chartStatusGeral"></canvas></div>
+          <div class="chart-count-label" id="statusGeralCountLabel"></div>
+        </div>
+        <div class="chart-card">
+          <div class="chart-title">Ações por Responsável</div>
+          <div class="chart-caption">Top responsáveis pelo maior número de ações, dentro dos filtros ativos</div>
+          <div class="chart-box"><canvas id="chartResponsavel"></canvas></div>
+          <div class="chart-count-label" id="responsavelCountLabel"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="topic-scope">
+      <div class="sticky-head">
+        <div class="section-title" id="sec-catalogo"><span class="num">3</span><h2>Catálogo de Entregas (aba "EAP por bloco")</h2><span class="line"></span></div>
+      </div>
+      <div class="panel-card">
+        <div class="eap-level-label" id="catalogSub"></div>
+        <div class="catalog-list" id="catalogList"></div>
+      </div>
+    </div>
+
+    <div class="topic-scope">
+      <div class="sticky-head">
+        <div class="section-title" id="sec-tabela"><span class="num">4</span><h2>Ações Detalhadas (aba "Cronograma de ações")</h2><span class="line"></span></div>
+      </div>
+      <div class="panel-card">
+        <div class="eap-level-label" id="tableSub"></div>
+        <div id="tableAcoesContainer"></div>
+      </div>
+    </div>
+
+    <div class="topic-scope">
+      <div class="sticky-head">
+        <div class="section-title" id="sec-regulamentacoes"><span class="num">5</span><h2>Regulamentações (aba "Regulamentações")</h2><span class="line"></span></div>
+      </div>
+      <div class="filters">
+        <div class="filter-item"><label>Tema</label><select id="filterRegTema"><option value="">Todos os temas</option></select></div>
+        <div class="filter-item"><label>Tipo de Ato</label><select id="filterRegTipoAto"><option value="">Todos os tipos</option></select></div>
+        <div class="filter-item"><label>Modalidade</label><select id="filterRegModalidade"><option value="">Todas as modalidades</option></select></div>
+        <button class="reset-btn" id="filterRegResetBtn">✕ Limpar filtros</button>
+        <span class="filter-count" id="filterRegCountLabel"></span>
+      </div>
+      <div class="charts-grid two-col">
+        <div class="chart-card">
+          <div class="chart-title">Regulamentações por Tema</div>
+          <div class="chart-caption">Filtrado por tipo de ato/modalidade selecionados; clique em uma barra para filtrar por tema</div>
+          <div class="chart-box"><canvas id="chartRegTema"></canvas></div>
+          <div class="chart-count-label" id="regTemaCountLabel"></div>
+        </div>
+        <div class="chart-card">
+          <div class="chart-title">Regulamentações por Tipo de Ato</div>
+          <div class="chart-caption">Filtrado por tema/modalidade selecionados; clique em uma fatia para filtrar por tipo de ato</div>
+          <div class="chart-box"><canvas id="chartRegTipoAto"></canvas></div>
+          <div class="chart-count-label" id="regTipoAtoCountLabel"></div>
+        </div>
+      </div>
+      <div class="panel-card reg-detail-card">
+        <div class="eap-level-label">Detalhamento por Tema e Subtema</div>
+        <div class="filters" style="margin-bottom: 18px;">
+          <div class="filter-item"><label>Tema</label><select id="filterRegDetailTema"><option value="">Selecione um tema</option></select></div>
+          <div class="filter-item"><label>Subtema</label><select id="filterRegDetailSubtema"><option value="">Selecione um subtema</option></select></div>
+          <button class="reset-btn" id="filterRegDetailResetBtn">✕ Limpar</button>
+        </div>
+        <div id="regDetailContent"></div>
+      </div>
+      <div class="panel-card">
+        <div class="eap-level-label" id="regTableSub"></div>
+        <div id="tableRegContainer"></div>
+      </div>
+    </div>
+
+    <div class="topic-scope">
+      <div class="sticky-head">
+        <div class="section-title" id="sec-pontos-focais"><span class="num">6</span><h2>Pontos Focais (aba "Pontos focais")</h2><span class="line"></span></div>
+      </div>
+      <div class="filters">
+        <div class="filter-item"><label>Ministério / Órgão</label><select id="filterPF"><option value="">Todos os ministérios/órgãos</option></select></div>
+        <button class="reset-btn" id="filterPFResetBtn">✕ Limpar filtro</button>
+        <span class="filter-count" id="filterPFCountLabel"></span>
+      </div>
+      <div class="panel-card">
+        <div id="tablePFContainer"></div>
+      </div>
+    </div>
+
+  </div>
+
+  <footer class="page-footer">PNMCE — Painel de Implementação · Retrato estático da planilha "PNMCE_dados_painel" em 24/09/2026</footer>
+
+</div>
+
+<script>
+const EMBEDDED_TEXT = "|  |  |\n| :-: | :-: |\n| PNMCE — Dados para o painel (Live Artifacts) |  |\n|  |  |\n| Cada aba corresponde a um tópico do documento \"EAP/WBS e Roadmap de Implementação da PNMCE (24 meses)\". Os dados aqui refletem o estado do documento na revisão indicada abaixo. |  |\n|  |  |\n| \\# | Aba |\n| 1 | Visão geral |\n| 2 | Panorama geral |\n| 3 | EAP por bloco |\n| 4 | Cronograma de ações |\n| 5 | Análise legal |\n| 6 | EAP gráfica (mapa visual) |\n| 7 | Roadmap executivo |\n| 8 | Cronograma visual (Gantt) |\n| 9 | Dependências críticas |\n| 10 | Matriz RACI |\n| 11 | Riscos-chave |\n| 12 | Próximos passos |\n\n|  |  |\n| :-: | :-: |\n| Visão geral da PNMCE |  |\n|  |  |\n| Nº | Bloco |\n| 1 | CIMCE |\n| 2 | Mecanismos de Triagem |\n| 3 | Outras entregas |\n| 4 | CNPMCE (pré-requisito de acesso aos instrumentos de fomento) |\n| 5 | Instrumentos de Fomento |\n| 6 | Áreas Estratégicas |\n|  |  |\n|  |  |\n| Notas |  |\n|  |  |\n| O CIMCE já foi instituído pela Lei nº 15.506/2026, regulamentado pelo Decreto nº 13.118/2026 e teve seus membros designados pela Portaria nº 1.043/2026. O projeto não cria o Conselho: ele o torna operacional e implementa os instrumentos de fomento, regulação e governança da PNMCE. |  |\n| Objetivo em 24 meses: entregar a EAP completa, o roadmap executivo, a agenda regulatória, os mapas de competências e processos, a matriz RACI e os planos de governança, risco e comunicação que constam como produtos finais obrigatórios do projeto. |  |\n| O Bloco 1 (CIMCE) é pré-requisito lógico dos demais: sem regimento interno aprovado (art. 20 do Decreto) e sem os decretos e resoluções regulamentadores ainda pendentes, os mecanismos de triagem (Bloco 2) e os instrumentos de fomento (Bloco 5) não têm base normativa para funcionar. O CNPMCE (Bloco 4) é, por exigência legal (art. 28, §3º da Lei), pré-requisito de acesso ao Bloco 5. |  |\n\n|  |  |  |  |\n| :-: | :-: | :-: | :-: |\n| Panorama geral do projeto |  |  |  |\n|  |  |  |  |\n| Números do projeto (hoje) |  |  |  |\n| 6 blocos (CIMCE, Mecanismos de Triagem, Outras entregas, CNPMCE, Instrumentos de Fomento, Áreas Estratégicas), com cerca de 32 entregas mapeadas na EAP. |  |  |  |\n| 10 decretos presidenciais e 9 blocos de resoluções do Pleno ainda pendentes de minuta/publicação. |  |  |  |\n| 1 decreto de estruturação da Secretaria-Executiva já em minuta (SEI 52315.001502/2026-55), faltando assinatura do Ministério da Fazenda. |  |  |  |\n| 3 dos 9 instrumentos de fomento já com responsável setorial confirmado: FGAM (Ministério da Fazenda), Projetos de P,D\\&I (MCTI) e RNMCE (MCTI e MEC); os demais 6 seguem a definir. |  |  |  |\n| Ritmo acelerado: prioridade Set/Out 2026 (CIMCE, triagem, lista de MCEs) e Nov/Dez 2026 (CNPMCE, PFMCE, FGAM, critérios de priorização) — bem mais rápido que o faseamento trimestral estimado inicialmente; as demais regulamentações seguem sem prazo definido. |  |  |  |\n|  |  |  |  |\n|  |  |  |  |\n| Marcos da prioridade Set/Out (status de acompanhamento) |  |  |  |\n|  |  |  |  |\n| \\# | Marco | Status | Data |\n| 1 | Sanção da Lei e Decreto do CIMCE | Concluído | 16/09/2026 |\n| 2 | Decreto de Triagem | Em andamento | — |\n| 3 | Resolução — Regimento Interno (1.1) | Em andamento | — |\n| 4 | Resolução — Lista de MCEs (rol de minerais) | Em andamento | — |\n| 5 | GT PNMCEs | Não iniciado | — |\n|  |  |  |  |\n|  |  |  |  |\n| Notas |  |  |  |\n|  |  |  |  |\n| O CIMCE já está instituído e com membros designados; o que falta é destravar o funcionamento (regimento interno) e publicar os instrumentos normativos e de fomento. Em nu00fameros, hoje: |  |  |  |\n| O cronograma visual e a matriz RACI abaixo detalham esse panorama; a leitura completa de cada entrega está na seção “EAP por bloco”. |  |  |  |\n\n|  |  |  |\n| :-: | :-: | :-: |\n| EAP por bloco — catálogo de entregas |  |  |\n|  |  |  |\n| Bloco | Entrega | Descrição |\n| Bloco 1 — CIMCE | Regimento Interno (1.1) | minuta quase pronta; resolução do Pleno (art. 20 do Decreto 13.118/2026); prioridade Set/Out 2026. |\n| Bloco 1 — CIMCE | Pleno | instância superior de formulação de política, delibera por resolução (art. 8º do Decreto); competências do art. 7º. |\n| Bloco 1 — CIMCE | Comitê Executivo | decide os casos concretos (triagem, habilitação, CMBC); reunião mensal (arts. 9 a 12 do Decreto). |\n| Bloco 1 — CIMCE | Secretaria-Executiva (1.2) | 3 subsecretarias: Política, Fomento e Parcerias; Cadastro, Habilitação e Priorização; Triagem de Investimentos e Ativos Estratégicos. Decreto de estruturação em minuta (Processo SEI 52315.001502/2026-55, documento SEI 64403885), pendente assinatura do Ministério da Fazenda; remaneja cargos da SGI/MGI para o MDIC e transforma 14 cargos, com impacto de R$ 1.118.409,93 em 2026 e R$ 3.042.531,51/ano a partir de 2027. Inclui a Estrutura Administrativa e Digital (1.3): manual operacional, protocolo eletrônico, sistema processual, banco de precedentes. |\n| Bloco 1 — CIMCE | Grupo de Trabalho da PNMCE (1.4, GT PNMCEs) | art. 16 do Decreto; ainda não iniciado. |\n| Bloco 1 — CIMCE | Monitoramento e Avaliação | acompanhamento da implementação da PNMCE (art. 7º, XIII do Decreto); inclui painel executivo, painel estratégico, portal de transparência e os indicadores estratégicos, tecnológicos, ambientais e de governança. |\n| Bloco 2 — Mecanismos de Triagem | Controle societário | mudança de controle, direta ou indireta |\n| Bloco 2 — Mecanismos de Triagem | Informações geológicas | acesso a informações estratégicas |\n| Bloco 2 — Mecanismos de Triagem | Participação relevante | influência significativa de pessoa jurídica estrangeira |\n| Bloco 2 — Mecanismos de Triagem | Contratos ou parcerias | acordos internacionais que afetem segurança econômica ou geopolítica |\n| Bloco 2 — Mecanismos de Triagem | Alienação ou cessão | de títulos minerários outorgados pela União |\n| Bloco 6 — Outras entregas | Lista de MCEs | resolução do rol de minerais (2.2), quase fechada; depende do decreto de critérios de classificação (art. 2º, §3º — lacuna identificada na análise legal abaixo) |\n| Bloco 6 — Outras entregas | Instrumentos regulatórios | art. 8º da Lei (agregação de valor e industrialização) |\n| Bloco 6 — Outras entregas | Instrumentos administrativos | idem, art. 8º |\n| Bloco 6 — Outras entregas | Informação de exportação | obrigações de prestação de informação (art. 8º, III) |\n| Bloco 6 — Outras entregas | Rastreabilidade | sistema de rastreabilidade da cadeia produtiva (art. 44) |\n| Bloco 6 — Outras entregas | Plano Nacional de MCEs | aprovado por resolução do Pleno (art. 7º, II do Decreto); previsto Nov/Dez 2026 |\n| Bloco 6 — Outras entregas | Mineração urbana | aplicação dos instrumentos da PNMCE ao setor (art. 7º, §2º da Lei) |\n| Bloco 6 — Outras entregas | Parcerias e Cooperação | inclui a RNMCE, Rede Nacional de Pesquisa, Desenvolvimento Tecnológico e Formação Profissional (art. 37 da Lei, responsáveis MCTI e MEC), além de parcerias e articulação interinstitucional (art. 7º, XI do Decreto) — nota: sua imagem não traz a RNMCE separadamente; mantive aqui para não perder a entrega, me avise se preferir outro lugar |\n| Bloco 6 — Outras entregas | Articulação com outras políticas | coordenação com outras políticas públicas (art. 42 da Lei) |\n| Bloco 3 — CNPMCE (pré-requisito de acesso aos instrumentos de fomento) | Sistema | plataforma de cadastro, integração com o SIGMINE, portal público (decreto do art. 28) |\n| Bloco 3 — CNPMCE (pré-requisito de acesso aos instrumentos de fomento) | Critérios de Priorização | critérios gerais de aprovação, classificação e priorização de projetos (art. 7º, V do Decreto) |\n| Bloco 4 — Instrumentos de Fomento | FGAM (3.1) | Estatuto, governança, critérios de garantia, avaliação de risco, monitoramento econômico-financeiro (Responsável: Ministério da Fazenda) |\n| Bloco 4 — Instrumentos de Fomento | PFMCE (3.2) | Chamamentos, habilitação, processo concorrencial, monitoramento de créditos fiscais |\n| Bloco 4 — Instrumentos de Fomento | Incentivos Fin/Fis/Cre/Reg (3.9) | Incentivos fiscais, financeiros, creditícios e regulatórios (Responsável: a definir) |\n| Bloco 4 — Instrumentos de Fomento | Leilões ANM (3.5) | Governança ANM-CIMCE, metodologia de precificação |\n| Bloco 4 — Instrumentos de Fomento | P\\&D\\&I (3.6) | Chamadas públicas, habilitação, fiscalização pela ANM (art. 36 da Lei), indicadores tecnológicos (Responsável: MCTI) |\n| Bloco 4 — Instrumentos de Fomento | Streaming e Royalties (3.8) | Averbação, sistemas eletrônicos, integração com ANM |\n| Bloco 4 — Instrumentos de Fomento | Certificado de Carbono — CMBC (3.3) | Metodologia de certificação, credenciamento, auditoria, interoperabilidade internacional |\n| Bloco 4 — Instrumentos de Fomento | Priorização Ambiental | Medidas de prevenção, mitigação e compensação ambiental na aplicação dos instrumentos (art. 7º, §1º, V da Lei) (Responsável: a definir) |\n| Bloco 4 — Instrumentos de Fomento | BNDES Fundo Clima (3.9) | Integração com o Fundo Clima (Responsável: a definir) |\n| Bloco 4 — Instrumentos de Fomento | Debêntures (3.9) | Debêntures incentivadas (Responsável: a definir) |\n| Bloco 4 — Instrumentos de Fomento | Reidi (3.9) | Regime especial de incentivos à infraestrutura estendido à mineração de MCEs (art. 47 da Lei) (Responsável: a definir) |\n| Bloco 4 — Instrumentos de Fomento | PPI (3.9) | Programa de Parcerias de Investimentos (Responsável: a definir) |\n| Bloco 5 — Áreas Estratégicas | Cadeia Produtiva de Imãs Permanentes | mapeamento e priorização da cadeia de terras-raras e imãs permanentes como área estratégica da PNMCE; aplica os instrumentos de triagem e de fomento já regulamentados nos Blocos 2 e 5 |\n| Bloco 5 — Áreas Estratégicas | Cadeia Produtiva de Baterias | mapeamento e priorização da cadeia de lítio, grafite e demais materiais de baterias como área estratégica da PNMCE; aplica os instrumentos de triagem e de fomento já regulamentados nos Blocos 2 e 5 |\n|  |  |  |\n|  |  |  |\n| Notas |  |  |\n|  |  |  |\n| Reorganizada na estrutura que você desenhou — CIMCE, Mecanismos de Triagem, Outras entregas, CNPMCE, Instrumentos de Fomento e Áreas Estratégicas —, que passa a ser a referência principal da EAP. A numeração entre parênteses (1.1, 2.1, 3.1 etc.) remete à EAP original, preservada no RACI, no roadmap e nas dependências abaixo, para não perder rastreabilidade. |  |  |\n| Decreto quase pronto (art. 2º, §2º da Lei). Cada modalidade tem resolução normativa, fluxo processual, formulário eletrônico, checklist, matriz de risco, parecer técnico e jurídico, deliberação do Comitê Executivo e recurso administrativo: |  |  |\n| O art. 28, §3º da Lei condiciona todos os instrumentos de fomento ao cadastro no CNPMCE e à habilitação pelo CIMCE — por isso este bloco é pré-requisito do Bloco 5. |  |  |\n\n|  |  |  |  |  |  |  |  |  |\n| :-: | :-: | :-: | :-: | :-: | :-: | :-: | :-: | :-: |\n| Cronograma detalhado de ações (por bloco) |  |  |  |  |  |  |  |  |\n|  |  |  |  |  |  |  |  |  |\n| Bloco | Entrega | Status geral da entrega | Ação | Status da ação | Documento que valida a conclusão | Responsável | Predecessora | Observações |\n| Bloco 1 — CIMCE | 1.1 Regimento Interno | em andamento | Elaborar minuta do Regimento Interno | Concluído | Minuta consolidada (versão de trabalho) | SAM | — |  |\n| Bloco 1 — CIMCE | 1.1 Regimento Interno | em andamento | Submeter minuta à revisão jurídica | Não iniciado | Parecer jurídico / Nota Técnica | SAJ | anterior |  |\n| Bloco 1 — CIMCE | 1.1 Regimento Interno | em andamento | Circular minuta para consulta entre membros do Pleno | Não iniciado | Ata de recebimento de contribuições ou e-mail de convocação | SAM | anterior |  |\n| Bloco 1 — CIMCE | 1.1 Regimento Interno | em andamento | Pautar e deliberar no Pleno | Não iniciado | Ata da reunião do Pleno | Pleno | anterior |  |\n| Bloco 1 — CIMCE | 1.1 Regimento Interno | em andamento | Aprovar o Regimento Interno | Não iniciado | Resolução do Pleno nº \\_\\_\\_/2026 | Pleno | anterior |  |\n| Bloco 1 — CIMCE | 1.1 Regimento Interno | em andamento | Publicar no Diário Oficial da União | Não iniciado | Publicação DOU | Secretaria-Executiva | anterior |  |\n| Bloco 1 — CIMCE | Pleno — operacionalização | não iniciado | Convocar a 1ª reunião ordinária do Pleno | Não iniciado | Convocação/pauta oficial | Secretaria-Executiva | Regimento Interno aprovado |  |\n| Bloco 1 — CIMCE | Pleno — operacionalização | não iniciado | Realizar a 1ª reunião ordinária do Pleno | Não iniciado | Ata da 1ª reunião | Pleno | anterior |  |\n| Bloco 1 — CIMCE | Pleno — operacionalização | não iniciado | Aprovar calendário anual de reuniões | Não iniciado | Calendário aprovado em ata | Pleno | anterior |  |\n| Bloco 1 — CIMCE | Comitê Executivo — operacionalização | não iniciado | Convocar a 1ª reunião do Comitê Executivo | Não iniciado | Convocação/pauta oficial | Secretaria-Executiva | Regimento Interno aprovado |  |\n| Bloco 1 — CIMCE | Comitê Executivo — operacionalização | não iniciado | Realizar a 1ª reunião mensal do Comitê Executivo | Não iniciado | Ata da reunião | Comitê Executivo | anterior |  |\n| Bloco 1 — CIMCE | Comitê Executivo — operacionalização | não iniciado | Definir calendário de reuniões mensais (arts. 9º a 12 do Decreto) | Não iniciado | Calendário aprovado em ata | Comitê Executivo | anterior |  |\n| Bloco 1 — CIMCE | 1.2 Secretaria-Executiva | em andamento | Elaborar minuta do decreto de estruturação | Concluído | Minuta SEI 52315.001502/2026-55 (doc. SEI 64403885) | Secretaria-Executiva/MDIC | — |  |\n| Bloco 1 — CIMCE | 1.2 Secretaria-Executiva | em andamento | Submeter minuta à revisão jurídica | Não iniciado | Minuta SEI 52315.001502/2026-55 (doc. SEI 64403885) | SAJ | — |  |\n| Bloco 1 — CIMCE | 1.2 Secretaria-Executiva | em andamento | Obter assinatura do Ministério da Fazenda | Não iniciado | Decreto assinado | Presidência da República | anterior |  |\n| Bloco 1 — CIMCE | 1.2 Secretaria-Executiva | em andamento | Publicar decreto de estruturação | Não iniciado | Publicação DOU | Presidência da República | anterior |  |\n| Bloco 1 — CIMCE | 1.2 Secretaria-Executiva | em andamento | Remanejar e transformar os 14 cargos (SGI/MGI → MDIC) | Não iniciado | Portaria de remanejamento/lotação | MGI | anterior |  |\n| Bloco 1 — CIMCE | 1.2 Secretaria-Executiva | em andamento | Estruturar as 3 subsecretarias (Política/Fomento/Parcerias; Cadastro/Habilitação/Priorização; Triagem) | Não iniciado | Portaria interna de organização | Secretaria-Executiva | anterior |  |\n| Bloco 1 — CIMCE | 1.3 Estrutura Administrativa e Digital | não iniciado | Elaborar manual operacional | Não iniciado | Manual publicado internamente | Secretaria-Executiva | 1.2 estruturada |  |\n| Bloco 1 — CIMCE | 1.3 Estrutura Administrativa e Digital | não iniciado | Implantar sistema de protocolo eletrônico | Não iniciado | Sistema em produção | Secretaria-Executiva | anterior |  |\n| Bloco 1 — CIMCE | 1.3 Estrutura Administrativa e Digital | não iniciado | Implantar sistema processual (processo eletrônico) | Não iniciado | Sistema em produção | Secretaria-Executiva | anterior |  |\n| Bloco 1 — CIMCE | 1.3 Estrutura Administrativa e Digital | não iniciado | Implantar banco de precedentes administrativos | Não iniciado | Sistema em produção | Secretaria-Executiva | anterior |  |\n| Bloco 1 — CIMCE | 1.4 Grupo de Trabalho da PNMCE (GT PNMCEs) | não iniciado | Editar ato de instituição do GT (art. 16 do Decreto) | Não iniciado | Portaria/Resolução de instituição | Secretaria-Executiva | — |  |\n| Bloco 1 — CIMCE | 1.4 Grupo de Trabalho da PNMCE (GT PNMCEs) | não iniciado | Designar membros do GT | Não iniciado | Portaria de designação | Secretaria-Executiva | anterior |  |\n| Bloco 1 — CIMCE | 1.4 Grupo de Trabalho da PNMCE (GT PNMCEs) | não iniciado | Instalar o GT (1ª reunião) | Não iniciado | Ata de instalação | Secretaria-Executiva | anterior |  |\n| Bloco 1 — CIMCE | Sanções por descumprimento das normas do CIMCE | não iniciado | Definir sanções e elaborar Minuta de Resolução (art. 41, §5º) | Não iniciado | Nota Técnica | Secretaria-Executiva | — |  |\n| Bloco 1 — CIMCE | Sanções por descumprimento das normas do CIMCE | não iniciado | Aprovar Resolução de sanções (art. 41, §5º) | Não iniciado | Resolução do Pleno | Pleno | — |  |\n| Bloco 1 — CIMCE | Sanções por descumprimento das normas do CIMCE | não iniciado | Publicar Resolução Sanções | Não iniciado | Resolução publicada no DOU | Secretaria-Executiva | anterior |  |\n| Bloco 1 — CIMCE | Monitoramento e Avaliação | não iniciado | Definir metodologia e indicadores (estratégicos, tecnológicos, ambientais e de governança) | Não iniciado | Nota Técnica | Secretaria-Executiva | — |  |\n| Bloco 1 — CIMCE | Monitoramento e Avaliação | não iniciado | Aprovar metodologia e indicadores (estratégicos, tecnológicos, ambientais e de governança) | Não iniciado | Resolução do Pleno | Pleno | — |  |\n| Bloco 1 — CIMCE | Monitoramento e Avaliação | não iniciado | Desenvolver painel executivo e painel estratégico | Não iniciado | Sistema em produção/homologação | Secretaria-Executiva | anterior |  |\n| Bloco 1 — CIMCE | Monitoramento e Avaliação | não iniciado | Publicar portal de transparência | Não iniciado | Portal publicado (URL ativa) | Secretaria-Executiva | anterior |  |\n| Bloco 1 — CIMCE | Monitoramento e Avaliação | não iniciado | Consolidar o 1º relatório de acompanhamento da PNMCE | Não iniciado | Relatório aprovado pelo Pleno | Secretaria-Executiva | anterior |  |\n| Bloco 2 — Mecanismos de Triagem | 2.1 Decreto do Mecanismo de Triagem | em andamento | Elaborar minuta do decreto (art. 2º, §2º da Lei) | Concluído | Minuta consolidada | SAM | — |  |\n| Bloco 2 — Mecanismos de Triagem | 2.1 Decreto do Mecanismo de Triagem | em andamento | Submeter à consulta interministerial/Casa Civil | Não iniciado | Ofício de encaminhamento | Secretaria-Executiva | anterior | Preocupação com riscos jurídicos, em razão de termos subjetivos e por detalhamento excessivo da norma Engessamento excesssivo. Exemplo: fila (colocar isso pode gerar problemas com TCU, por exemplo) Transparência excessiva Consenso: um rito simplificado, um rito ordinário e \"um rito específico\" para garantir que casos complexos tenham o devido estudo. Outros países têm isso LAI abre possibilidade de sigilo em caso de segurança nacional  Em avaliação: a análise será por Projeto Risco: minerador burlar o sistema, não informando que os títulos são de determinados projetos Como será a sistemática de busca das informações  Outro ponto:  validade dos atos somente após homologação do CIMCE? é anuência ou homologação? Encaminhamento: equipe (Tomas, Miguel, Gustavo Mello) irá montar critérios e detalhar números dos números processos |\n| Bloco 2 — Mecanismos de Triagem | 2.1 Decreto do Mecanismo de Triagem | em andamento | Submeter à análise jurídica | Não iniciado | Ofício de encaminhamento | SAJ | anterior |  |\n| Bloco 2 — Mecanismos de Triagem | 2.1 Decreto do Mecanismo de Triagem | em andamento | Publicar o decreto | Não iniciado | Publicação DOU | Presidência da República | anterior |  |\n| Bloco 2 — Mecanismos de Triagem | Controle societário | não iniciado | Elaborar resolução normativa da modalidade | Não iniciado | Resolução do Pleno | Secretaria-Executiva | Decreto de triagem publicado |  |\n| Bloco 2 — Mecanismos de Triagem | Controle societário | não iniciado | Definir fluxo processual, formulário eletrônico e checklist documental | Não iniciado | Manual/fluxo publicado + formulário disponível no sistema | Secretaria-Executiva | anterior |  |\n| Bloco 2 — Mecanismos de Triagem | Controle societário | não iniciado | Estruturar matriz de risco e modelo de parecer técnico/jurídico | Não iniciado | Matriz e modelos aprovados | Secretaria-Executiva | anterior |  |\n| Bloco 2 — Mecanismos de Triagem | Controle societário | não iniciado | Regulamentar rito de deliberação do Comitê Executivo e recurso administrativo | Não iniciado | Resolução do Pleno / normativo interno | Pleno | anterior |  |\n| Bloco 2 — Mecanismos de Triagem | Informações geológicas | não iniciado | Elaborar resolução normativa da modalidade | Não iniciado | Resolução do Pleno | Secretaria-Executiva | Decreto de triagem publicado |  |\n| Bloco 2 — Mecanismos de Triagem | Informações geológicas | não iniciado | Definir fluxo processual, formulário eletrônico e checklist documental | Não iniciado | Manual/fluxo publicado + formulário disponível no sistema | Secretaria-Executiva | anterior |  |\n| Bloco 2 — Mecanismos de Triagem | Informações geológicas | não iniciado | Estruturar matriz de risco e modelo de parecer técnico/jurídico | Não iniciado | Matriz e modelos aprovados | Secretaria-Executiva | anterior |  |\n| Bloco 2 — Mecanismos de Triagem | Informações geológicas | não iniciado | Regulamentar rito de deliberação do Comitê Executivo e recurso administrativo | Não iniciado | Resolução do Pleno / normativo interno | Pleno | anterior |  |\n| Bloco 2 — Mecanismos de Triagem | Participação relevante | não iniciado | Elaborar resolução normativa da modalidade | Não iniciado | Resolução do Pleno | Secretaria-Executiva | Decreto de triagem publicado |  |\n| Bloco 2 — Mecanismos de Triagem | Participação relevante | não iniciado | Definir fluxo processual, formulário eletrônico e checklist documental | Não iniciado | Manual/fluxo publicado + formulário disponível no sistema | Secretaria-Executiva | anterior |  |\n| Bloco 2 — Mecanismos de Triagem | Participação relevante | não iniciado | Estruturar matriz de risco e modelo de parecer técnico/jurídico | Não iniciado | Matriz e modelos aprovados | Secretaria-Executiva | anterior |  |\n| Bloco 2 — Mecanismos de Triagem | Participação relevante | não iniciado | Regulamentar rito de deliberação do Comitê Executivo e recurso administrativo | Não iniciado | Resolução do Pleno / normativo interno | Pleno | anterior |  |\n| Bloco 2 — Mecanismos de Triagem | Contratos ou parcerias | não iniciado | Elaborar resolução normativa da modalidade | Não iniciado | Resolução do Pleno | Secretaria-Executiva | Decreto de triagem publicado |  |\n| Bloco 2 — Mecanismos de Triagem | Contratos ou parcerias | não iniciado | Definir fluxo processual, formulário eletrônico e checklist documental | Não iniciado | Manual/fluxo publicado + formulário disponível no sistema | Secretaria-Executiva | anterior |  |\n| Bloco 2 — Mecanismos de Triagem | Contratos ou parcerias | não iniciado | Estruturar matriz de risco e modelo de parecer técnico/jurídico | Não iniciado | Matriz e modelos aprovados | Secretaria-Executiva | anterior |  |\n| Bloco 2 — Mecanismos de Triagem | Contratos ou parcerias | não iniciado | Regulamentar rito de deliberação do Comitê Executivo e recurso administrativo | Não iniciado | Resolução do Pleno / normativo interno | Pleno | anterior |  |\n| Bloco 2 — Mecanismos de Triagem | Alienação ou cessão | não iniciado | Elaborar resolução normativa da modalidade | Não iniciado | Resolução do Pleno | Secretaria-Executiva | Decreto de triagem publicado |  |\n| Bloco 2 — Mecanismos de Triagem | Alienação ou cessão | não iniciado | Definir fluxo processual, formulário eletrônico e checklist documental | Não iniciado | Manual/fluxo publicado + formulário disponível no sistema | Secretaria-Executiva | anterior |  |\n| Bloco 2 — Mecanismos de Triagem | Alienação ou cessão | não iniciado | Estruturar matriz de risco e modelo de parecer técnico/jurídico | Não iniciado | Matriz e modelos aprovados | Secretaria-Executiva | anterior |  |\n| Bloco 2 — Mecanismos de Triagem | Alienação ou cessão | não iniciado | Regulamentar rito de deliberação do Comitê Executivo e recurso administrativo | Não iniciado | Resolução do Pleno / normativo interno | Pleno | anterior |  |\n| Bloco 6 — Outras entregas | Lista de MCEs (2.2) | em andamento | Elaborar minuta da resolução do rol de minerais | Concluído (quase fechada) | Minuta consolidada | Secretaria-Executiva | — |  |\n| Bloco 6 — Outras entregas | Lista de MCEs (2.2) | em andamento | Elaborar decreto de critérios de classificação (art. 2º, §3º) | Não iniciado (lacuna identificada) | Minuta do decreto | Secretaria-Executiva | — | MME - possibilidade de discricionariedade do CIMCE de ofertar certos instrumentos para minerais da classe III. Inserir no Decreto Acrescentar slide contendo a informação de que os instrumentos não serão ofertados de imediato, mas sim com a necessidade de priorização de acordo com o parágrafo 1º do art. 7º |\n| Bloco 6 — Outras entregas | Lista de MCEs (2.2) | em andamento | Publicar decreto de critérios de classificação | Não iniciado | Publicação DOU | Presidência da República | anterior |  |\n| Bloco 6 — Outras entregas | Lista de MCEs (2.2) | em andamento | Aprovar e publicar resolução do rol inicial de MCEs | Não iniciado | Resolução do Pleno + publicação DOU | Pleno | anterior |  |\n| Bloco 6 — Outras entregas | Instrumentos regulatórios (art. 8º da Lei) | não iniciado | Definir critérios, processo e funcionamento do parâmetros regulatórios de monitoramento dos projetos que internalizam etapas relevantes da cadeia | Não iniciado | Nota Técnica | Secretaria-Executiva | — |  |\n| Bloco 6 — Outras entregas | Instrumentos regulatórios (art. 8º da Lei) | não iniciado | Aprovar critérios, processo e funcionamento do parâmetros regulatórios de monitoramento dos projetos que internalizam etapas relevantes da cadeia | Não iniciado | Resolução do Pleno | Pleno | anterior |  |\n| Bloco 6 — Outras entregas | Instrumentos regulatórios (art. 8º da Lei) | não iniciado | Estruturar sistema de acompanhamento dos compromissos | Não iniciado | Sistema em produção | Secretaria-Executiva | anterior |  |\n| Bloco 6 — Outras entregas | Instrumentos administrativos (art. 8º) | não iniciado | Definir critérios, processo e funcionamento do parâmetros administrativos de monitoramento dos projetos que internalizam etapas relevantes da cadeia | Não iniciado | Nota Técnica | Secretaria-Executiva | Decreto do art. 8º publicado |  |\n| Bloco 6 — Outras entregas | Instrumentos administrativos (art. 8º) | não iniciado | Aprovar critérios, processo e funcionamento do parâmetros administrativos de monitoramento dos projetos que internalizam etapas relevantes da cadeia | Não iniciado | Resolução do Pleno | Pleno | Decreto do art. 8º publicado |  |\n| Bloco 6 — Outras entregas | Instrumentos administrativos (art. 8º) | não iniciado | Estruturar sistema de acompanhamento dos compromissos | Não iniciado | Sistema em produção | Secretaria-Executiva | anterior |  |\n| Bloco 6 — Outras entregas | Informação de exportação (art. 8º, III) | não iniciado | Regulamentar obrigações de prestação de informação de exportação | Não iniciado | Resolução do Pleno | Secretaria-Executiva | — |  |\n| Bloco 6 — Outras entregas | Informação de exportação (art. 8º, III) | não iniciado | Implantar canal/sistema de prestação de informações | Não iniciado | Sistema em produção | Secretaria-Executiva | anterior |  |\n| Bloco 6 — Outras entregas | Rastreabilidade (art. 44) | não iniciado | Definir critérios, processo e funcionamento do Sistema Nacional de Rastreabilidade | Não iniciado | Nota Técnica | Secretaria-Executiva | — |  |\n| Bloco 6 — Outras entregas | Rastreabilidade (art. 44) | não iniciado | Aprovar Resolução | Não iniciado | Resolução | Pleno | anterior |  |\n| Bloco 6 — Outras entregas | Rastreabilidade (art. 44) | não iniciado | Estabelecer Sistema de Rastreabilidade | Não iniciado | Sistema em produção / 1º lote credenciado | ANM | anterior |  |\n| Bloco 6 — Outras entregas | Rastreabilidade (art. 44) | não iniciado | Credenciar operadores | Não iniciado | Sistema em produção / 1º lote credenciado | ANM | anterior |  |\n| Bloco 6 — Outras entregas | Plano Nacional de MCEs | não iniciado (previsto Nov/Dez 2026) | Elaborar Plano Nacional | Não iniciado | Nota Técnica | Secretaria-Executiva | — |  |\n| Bloco 6 — Outras entregas | Plano Nacional de MCEs | não iniciado (previsto Nov/Dez 2026) | Aprovar Plano Nacional | Não iniciado | Resolução | Pleno | anterior |  |\n| Bloco 6 — Outras entregas | Plano Nacional de MCEs | não iniciado (previsto Nov/Dez 2026) | Publicar o Plano Nacional | Não iniciado | Publicação DOU | Secretaria-Executiva | anterior |  |\n| Bloco 6 — Outras entregas | Mineração urbana (art. 7º, §2º da Lei) | não iniciado | Definir diretrizes, critérios, processo e funcionamento de aplicação dos instrumentos da PNMCE ao setor | Não iniciado | Nota Técnica | Secretaria-Executiva | — |  |\n| Bloco 6 — Outras entregas | Mineração urbana (art. 7º, §2º da Lei) | não iniciado | Aprovar diretrizes, critérios, processo e funcionamento de aplicação dos instrumentos da PNMCE ao setor | Não iniciado | Resolução | Pleno | — |  |\n| Bloco 6 — Outras entregas | Parcerias e Cooperação / RNMCE (art. 37 da Lei) | não iniciado | Elaborar decreto da RNMCE | Não iniciado | Minuta do decreto | MCTI/MEC | — |  |\n| Bloco 6 — Outras entregas | Parcerias e Cooperação / RNMCE (art. 37 da Lei) | não iniciado | Publicar decreto da RNMCE | Não iniciado | Publicação DOU | Presidência da República | anterior |  |\n| Bloco 6 — Outras entregas | Parcerias e Cooperação / RNMCE (art. 37 da Lei) | não iniciado | Estabelecer composição, forma de funcionamento e competências da estrutura de governança da RNMCE | Não iniciado | Nota Técnica | Secretaria Executiva | — |  |\n| Bloco 6 — Outras entregas | Parcerias e Cooperação / RNMCE (art. 37 da Lei) | não iniciado | Aprovar composição, forma de funcionamento e competências da estrutura de governança da RNMCE | Não iniciado | Resolução | Pleno | anterior |  |\n| Bloco 6 — Outras entregas | Parcerias e Cooperação / RNMCE (art. 37 da Lei) | não iniciado | Estruturar adesão de instituições, bolsas e parcerias | Não iniciado | 1º edital/chamada publicado | MCTI/MEC | anterior |  |\n| Bloco 6 — Outras entregas | Parcerias e Cooperação / RNMCE (art. 37 da Lei) | não iniciado | Estruturar sistema de fiscalização dos compromissos | Não iniciado | Plano de Fiscalização | ANM | anterior |  |\n| Bloco 6 — Outras entregas | Articulação com outras políticas (art. 42 da Lei) | não iniciado | Definir os critérios de conformidade da PNMCE com as políticas, as estratégias, os programas e os planos nacionais vigentes | Não iniciado | Nota técnica de mapeamento | Secretaria-Executiva | — |  |\n| Bloco 6 — Outras entregas | Articulação com outras políticas (art. 42 da Lei) | não iniciado | Formalizar mecanismos de coordenação interinstitucional | Não iniciado | Acordo de cooperação técnica/portaria conjunta | Secretaria-Executiva | anterior |  |\n| Bloco 3 — CNPMCE | Sistema (CNPMCE) | não iniciado | Definir processo e funcionamento do CNPMCE | Não iniciado | Nota Técnica | Secretaria-Executiva | — |  |\n| Bloco 3 — CNPMCE | Sistema (CNPMCE) | não iniciado | Aprovar critérios, processo e funcionamento do CNPMCE | Não iniciado | Resolução | Pleno | anterior |  |\n| Bloco 3 — CNPMCE | Sistema (CNPMCE) | não iniciado | Desenvolver plataforma de cadastro e integração com o SIGMINE | Não iniciado | Sistema em produção | Secretaria-Executiva | anterior |  |\n| Bloco 3 — CNPMCE | Sistema (CNPMCE) | não iniciado | Publicar portal público de consulta | Não iniciado | Portal publicado (URL ativa) | Secretaria-Executiva | anterior |  |\n| Bloco 3 — CNPMCE | Critérios de Priorização (art. 7º, V do Decreto) | não iniciado | Elaborar minuta da resolução de critérios de priorização | Não iniciado | Minuta consolidada | Secretaria-Executiva | — |  |\n| Bloco 3 — CNPMCE | Critérios de Priorização (art. 7º, V do Decreto) | não iniciado | Aprovar resolução de critérios de priorização | Não iniciado | Resolução do Pleno | Pleno | anterior |  |\n| Bloco 4 — Instrumentos de Fomento | FGAM (3.1) | não iniciado | Elaborar decreto de criação do FGAM | Não iniciado | Minuta do decreto | Ministério da Fazenda | — |  |\n| Bloco 4 — Instrumentos de Fomento | FGAM (3.1) | não iniciado | Publicar decreto do FGAM | Não iniciado | Decreto | Presidência da República | anterior |  |\n| Bloco 4 — Instrumentos de Fomento | FGAM (3.1) | não iniciado | Aprovar estatuto e modelo de governança (comitê gestor, assembleia de cotistas) | Não iniciado | Estatuto aprovado | Comitê Gestor do FGAM | anterior |  |\n| Bloco 4 — Instrumentos de Fomento | FGAM (3.1) | não iniciado | Iniciar operação (1ª garantia concedida) | Não iniciado | Registro da 1ª operação | FGAM/Ministério da Fazenda | anterior |  |\n| Bloco 4 — Instrumentos de Fomento | PFMCE (3.2) | não iniciado | Elaborar decreto do PFMCE | Não iniciado | Minuta do decreto | Ministério da Fazenda | — |  |\n| Bloco 4 — Instrumentos de Fomento | PFMCE (3.2) | não iniciado | Publicar decreto do PFMCE | Não iniciado | Publicação DOU | Presidência da República | anterior |  |\n| Bloco 4 — Instrumentos de Fomento | PFMCE (3.2) | não iniciado | Definir crtérios, processo e funcionamento do PFMCE | Não iniciado | Nota Técnica | Secretaria Executiva | anterior |  |\n| Bloco 4 — Instrumentos de Fomento | PFMCE (3.2) | não iniciado | Aprovar crtérios, processo e funcionamento do PFMCE | Não iniciado | Resolução | Pleno | anterior |  |\n| Bloco 4 — Instrumentos de Fomento | PFMCE (3.2) | não iniciado | Lançar 1º chamamento público | Não iniciado | Edital publicado | Ministério da Fazenda | anterior |  |\n| Bloco 4 — Instrumentos de Fomento | PFMCE (3.2) | não iniciado | Habilitar 1º projeto no PFMCE | Não iniciado | Ato de habilitação | Comitê Executivo | anterior |  |\n| Bloco 4 — Instrumentos de Fomento | Incentivos Fiscais/Financeiros/Creditícios/Regulatórios (3.9) | não iniciado | Mapear e regulamentar os instrumentos (debêntures, BNDES/Fundo Clima, Reidi, PPI) | Não iniciado | Normativo(s) específico(s) publicado(s) | a definir | — |  |\n| Bloco 4 — Instrumentos de Fomento | Incentivos Fiscais/Financeiros/Creditícios/Regulatórios (3.9) | não iniciado | Operacionalizar 1º acesso aos incentivos | Não iniciado | Registro da 1ª operação | a definir | anterior |  |\n| Bloco 4 — Instrumentos de Fomento | Leilões ANM (3.5) | não iniciado | Aprovar resolução de diretrizes de precificação e áreas estratégicas (governança ANM-CIMCE) | Não iniciado | Resolução | Pleno | anterior |  |\n| Bloco 4 — Instrumentos de Fomento | Leilões ANM (3.5) | não iniciado | Elaborar plano de Leilões de Áreas com potencial para produção de MCEs | Não iniciado | Plano | ANM | anterior |  |\n| Bloco 4 — Instrumentos de Fomento | Leilões ANM (3.5) | não iniciado | Realizar o 1º leilão de área com potencial mineral | Não iniciado | Edital de leilão + resultado homologado | ANM | anterior |  |\n| Bloco 4 — Instrumentos de Fomento | P\\&D\\&I (3.6) | não iniciado | Definir percentual mínimo dos projetos a serem desenvolvidos como projetos-piloto, unidades de demonstração ou tecnologia de ampliação da escala | Não iniciado | Nota Técnica | Secretaria Executiva | — |  |\n| Bloco 4 — Instrumentos de Fomento | P\\&D\\&I (3.6) | não iniciado | Aprovar percentual mínimo dos projetos a serem desenvolvidos como projetos-piloto, unidades de demonstração ou tecnologia de ampliação da escala | Não iniciado | Resolução | Pleno | anterior |  |\n| Bloco 4 — Instrumentos de Fomento | P\\&D\\&I (3.6) | não iniciado | Lançar 1ª chamada pública de P\\&D\\&I | Não iniciado | Edital publicado | MCTI | anterior |  |\n| Bloco 4 — Instrumentos de Fomento | P\\&D\\&I (3.6) | não iniciado | Credenciar instituições e habilitar 1º projeto-piloto | Não iniciado | Ato de credenciamento/habilitação | MCTI | anterior |  |\n| Bloco 4 — Instrumentos de Fomento | P\\&D\\&I (3.6) | não iniciado | Fiscalizar o cumprimento das obrigações de P\\&D\\&I (art. 36 da Lei) | Não iniciado | Relatório de fiscalização | ANM | anterior |  |\n| Bloco 4 — Instrumentos de Fomento | Streaming e Royalties (3.8) | não iniciado | Regulamentar procedimentos de averbação de contratos de streaming e royalties | Não iniciado | Resolução do Pleno | a definir | — |  |\n| Bloco 4 — Instrumentos de Fomento | Streaming e Royalties (3.8) | não iniciado | Implantar sistema eletrônico de averbação integrado à ANM | Não iniciado | Sistema em produção | a definir/TI | anterior |  |\n| Bloco 4 — Instrumentos de Fomento | Certificado de Carbono — CMBC (3.3) | não iniciado | Definir critérios, processo e funcionamento da Certificação Mineral de Baixo Carbono | Não iniciado | Nota Técnica | Secretaria Executiva | — |  |\n| Bloco 4 — Instrumentos de Fomento | Certificado de Carbono — CMBC (3.3) | não iniciado | Aprovar critérios, processo e funcionamento da Certificação Mineral de Baixo Carbono | Não iniciado | Resolução | Resolução | anterior |  |\n| Bloco 4 — Instrumentos de Fomento | Priorização Ambiental (art. 7º, §1º, V da Lei) | não iniciado | Definir medidas de prevenção, mitigação e compensação ambiental | Não iniciado | Resolução do Pleno | a definir | — |  |\n| Bloco 4 — Instrumentos de Fomento | Priorização Ambiental (art. 7º, §1º, V da Lei) | não iniciado | Aplicar critério ambiental na 1ª decisão de fomento | Não iniciado | Registro da aplicação em ata | Comitê Executivo | anterior |  |\n| Bloco 4 — Instrumentos de Fomento | BNDES Fundo Clima (3.9) | não iniciado | Definir Governança no âmbito do FNMC | Não iniciado | Nota Técnica | Secretaria Executiva | — |  |\n| Bloco 4 — Instrumentos de Fomento | BNDES Fundo Clima (3.9) | não iniciado | Aprovar Governança no âmbito do FNMC | Não iniciado | Resolução | Pleno | — |  |\n| Bloco 4 — Instrumentos de Fomento | BNDES Fundo Clima (3.9) | não iniciado | Formalizar integração operacional com o Fundo Clima | Não iniciado | Acordo/Convênio de integração | a definir/BNDES | — |  |\n| Bloco 4 — Instrumentos de Fomento | Debêntures (3.9) | não iniciado | Regulamentar debêntures incentivadas para o setor | Não iniciado | Normativo específico publicado | a definir | — |  |\n| Bloco 4 — Instrumentos de Fomento | Reidi (3.9) | não iniciado | Regulamentar extensão do Reidi à mineração de MCEs (art. 47 da Lei) | Não iniciado | Decreto/normativo publicado | a definir | — |  |\n| Bloco 4 — Instrumentos de Fomento | PPI (3.9) | não iniciado | Incluir projetos de MCEs no Programa de Parcerias de Investimentos | Não iniciado | Ato de qualificação no PPI | a definir | — |  |\n| Bloco 5 — Áreas Estratégicas | Definição das áreas |  | Elaborar Minuta de Decreto para definição de áreas estratégicas | Não iniciado | Minuta de Decreto | Secretaria Executiva |  |  |\n| Bloco 5 — Áreas Estratégicas | Definição das áreas |  | Assinar Decreto que define as áreas estratégicas da PNMCE | Não iniciado | Decreto | Presidência da República | anterior |  |\n| Bloco 5 — Áreas Estratégicas | Cadeia Produtiva de Imãs Permanentes | não iniciado | Elaborar diagnóstico da cadeia (mapeamento de oferta, demanda e gargalos) | Não iniciado | Nota técnica/diagnóstico | Secretaria-Executiva | — |  |\n| Bloco 5 — Áreas Estratégicas | Cadeia Produtiva de Imãs Permanentes | não iniciado | Elaborar plano de desenvolvimento da cadeia (metas e instrumentos aplicáveis) | Não iniciado | Minuta do plano | Secretaria-Executiva | anterior |  |\n| Bloco 5 — Áreas Estratégicas | Cadeia Produtiva de Imãs Permanentes | não iniciado | Aprovar o plano no Pleno do CIMCE | Não iniciado | Resolução do Pleno | Pleno | anterior |  |\n| Bloco 5 — Áreas Estratégicas | Cadeia Produtiva de Imãs Permanentes | não iniciado | Publicar o plano/diretrizes da cadeia | Não iniciado | Publicação DOU/portal de transparência | Secretaria-Executiva | anterior |  |\n| Bloco 5 — Áreas Estratégicas | Cadeia Produtiva de Imãs Permanentes | não iniciado | Priorizar e habilitar projeto(s)-âncora da cadeia | Não iniciado | Ato de priorização/habilitação (art. 7º, III do Decreto) | Comitê Executivo | anterior |  |\n| Bloco 5 — Áreas Estratégicas | Cadeia Produtiva de Baterias | não iniciado | Elaborar diagnóstico da cadeia (mapeamento de oferta, demanda e gargalos) | Não iniciado | Nota técnica/diagnóstico | Secretaria-Executiva | — |  |\n| Bloco 5 — Áreas Estratégicas | Cadeia Produtiva de Baterias | não iniciado | Elaborar plano de desenvolvimento da cadeia (metas e instrumentos aplicáveis) | Não iniciado | Minuta do plano | Secretaria-Executiva | anterior |  |\n| Bloco 5 — Áreas Estratégicas | Cadeia Produtiva de Baterias | não iniciado | Aprovar o plano no Pleno do CIMCE | Não iniciado | Resolução do Pleno | Pleno | anterior |  |\n| Bloco 5 — Áreas Estratégicas | Cadeia Produtiva de Baterias | não iniciado | Publicar o plano/diretrizes da cadeia | Não iniciado | Publicação DOU/portal de transparência | Secretaria-Executiva | anterior |  |\n| Bloco 5 — Áreas Estratégicas | Cadeia Produtiva de Baterias | não iniciado | Priorizar e habilitar projeto(s)-âncora da cadeia | Não iniciado | Ato de priorização/habilitação (art. 7º, III do Decreto) | Comitê Executivo | anterior |  |\n|  |  |  |  |  |  |  |  |  |\n|  |  |  |  |  |  |  |  |  |\n| Notas |  |  |  |  |  |  |  |  |\n|  |  |  |  |  |  |  |  |  |\n| Detalhamento de cada entrega em ações executáveis, com status atual, o documento que comprova a conclusão de cada ação, o responsável e a ação predecessora — para alimentar um cronograma tipo MS Project. Convenção de status: Concluído · Em andamento · Não iniciado. |  |  |  |  |  |  |  |  |\n\n|  |  |  |  |  |  |  |  |  |\n| :-: | :-: | :-: | :-: | :-: | :-: | :-: | :-: | :-: |\n| Tema | Subtema | Modalidade | Tipo de ato | Tema que requer regulamentação | Dispositivos principais | O que precisa ser regulado | Impactos econômicos positivos | Impactos econômicos negativos/riscos |\n| Lista de MCEs | Lista de MCEs | Critérios | Resolução | Lista de minerais críticos e estratégicos | Arts. 2º, 3º §3º, 41 §1º III “d”, 41 §4º | Critérios econômicos, socioambientais e climáticos para definir e atualizar a lista; periodicidade quadrienal e revisões extraordinárias; metodologia de risco de suprimento, relevância industrial, soberania, balança comercial, transição energética, fertilizantes e defesa. | Dá previsibilidade para investidores; permite focalizar crédito, incentivos e infraestrutura; alinha política mineral, industrial, climática e de defesa. | Se a lista for ampla demais, dilui recursos públicos; se for estreita demais, exclui cadeias promissoras; mudanças frequentes podem elevar risco regulatório. |\n| Mecanismos de Triagem | Geral | Critérios; Processo | Decreto e Resolução | Mecanismo de triagem e homologação de atos estratégicos | Art. 3º §2º; Art. 41 §1º III “b” | Procedimentos, prazos, critérios e instâncias para homologar mudança de controle societário, participação estrangeira, acesso a dados geológicos estratégicos, contratos internacionais de fornecimento e alienação/cessão/oneração de títulos minerários ligados a minerais críticos. | Protege soberania, segurança econômica e ativos estratégicos; evita captura de reservas por agentes incompatíveis com o interesse nacional; pode fortalecer barganha do Brasil em cadeias globais. | Pode reduzir investimento estrangeiro direto se for percebido como controle excessivo; pode atrasar M\\&A, financiamento e joint ventures; aumenta custo jurídico e transacional. |\n| CNPMCE | Agregação de Valor | Critérios; Processo | Resolução | Critérios de agregação de valor no Brasil | Art. 2º XIX; Art. 4º I; Art. 8º | Limite de faturamento para acessar crédito fiscal e debêntures; método de cálculo para grupos econômicos, consórcios e partes relacionadas. | Estimula industrialização, refino, materiais para baterias, ímãs, fertilizantes e armazenamento de energia; aumenta valor exportado por tonelada; gera empregos industriais e arrecadação. | Pode criar barreiras indiretas à exportação de minério bruto; se os patamares forem irreais, projetos podem não sair; risco de encarecer cadeias locais sem escala industrial suficiente. |\n| Mecanismos de Triagem | Exportação | Processo | Resolução | Obrigações de informação sobre exportações | Art. 8º I e III e parágrafo único | Dados obrigatórios sobre volume, destino, beneficiário final, cadeia societária, grau de processamento, composição mineralógica e uso econômico dos minerais exportados; limites, prazos, sigilo e fiscalização. | Melhora inteligência econômica e geopolítica; reduz evasão, subfaturamento e perda de informação estratégica; ajuda a planejar política industrial. | Eleva custo de compliance; pode expor informações comerciais sensíveis; risco de burocratizar exportações se sistemas forem lentos. |\n| Outros | Instrumentos regulatórios e administrativos | Critérios; Processo; Funcionamento | Resolução | Projetos que internalizam etapas relevantes | Art. 8º II e parágrafo único | Critérios de preferência, pontuação adicional, priorização administrativa ou enquadramento estratégico |  |  |\n| Instrumentos de Fomento | Licenciamento Ambiental | Critérios; Processo | Resolução | Priorização administrativa e licenciamento ambiental | Arts. 4º XIV, 5º V, 43 | Critérios para priorizar análise de projetos de minerais críticos e estratégicos por MME, ANM, órgãos ambientais e entes federados; fluxos interinstitucionais e prazos. | Reduz tempo de maturação de projetos; antecipa investimentos; melhora competitividade do Brasil frente a outros países mineradores. | Se a prioridade for confundida com flexibilização ambiental, pode aumentar judicialização, conflitos sociais e risco reputacional; projetos não prioritários podem ser deslocados na fila. |\n| CNPMCE | Geral | Critérios; Processo | Resolução | Habilitação, credenciamento e priorização de projetos | Arts. 7º §1º, 12 §4º, 18 §11, 28 §3º, 41 §1º III “a”, “e” e “f” | Regras para habilitar projetos no CNPMCE e no CIMCE; critérios de prioridade; exigências de conteúdo local, inovação, desenvolvimento regional, segurança de barragens, diálogo comunitário e soberania nacional. | Permite selecionar projetos com maior retorno econômico, tecnológico e regional; reduz dispersão de incentivos; pode induzir melhores práticas ESG. | Alta discricionariedade pode gerar insegurança jurídica, lobby e captura regulatória; critérios excessivos podem excluir projetos economicamente viáveis. |\n| CNPMCE | Priorização | Critérios; Processo | Resolução | Critérios sociais, locais e territoriais para projetos prioritários | Art. 7º §1º | Métricas para contratação de mão de obra local, compras locais, apoio a desenvolvimento local, inclusão social, mitigação de impactos, diálogo comunitário e inovação industrial. | Aumenta multiplicadores locais; melhora licença social para operar; reduz conflitos territoriais e cria empregos regionais. | Pode elevar custos de implantação; em regiões sem fornecedores qualificados, exigências locais podem atrasar projetos; risco de formalismo sem impacto real. |\n| Instrumentos de Fomento | FGAM | Funcionamento | Decreto e Resolução | Fundo Garantidor da Atividade Mineral — FGAM | Arts. 9º a 14 | Criação do fundo; estatuto; classes de cotas; governança; política de garantias; critérios de elegibilidade; contrapartidas; limites de participação; política de risco; remuneração da administradora; transparência; liquidação; auditoria. | Reduz risco de crédito e custo de capital; melhora financiamento para pesquisa, lavra, beneficiamento, transformação e mineração urbana; pode alavancar capital privado e multilateral. | Exposição fiscal indireta, ainda que o fundo tenha natureza privada; risco de má precificação de garantias; possibilidade de apoiar projetos politicamente escolhidos, mas economicamente frágeis. |\n| Instrumentos de Fomento | FGAM | Critérios | Resolução | Participação da União, estados, DF, municípios e privados no FGAM | Arts. 9º, 10 §§1º, 2º, 5º | Condições para integralização de cotas em dinheiro, títulos públicos ou direitos minerários; participação de entes subnacionais; direitos dos cotistas; governança federativa. | Permite montar estrutura de blended finance; atrai recursos subnacionais e privados; usa direitos minerários como ativo financeiro. | Valoração de direitos minerários pode ser controversa; risco de conflitos entre cotistas; participação pública pode gerar pressão por garantias não econômicas. |\n| Instrumentos de Fomento | FGAM | Funcionamento | Resolução | Comitê gestor do FGAM | Art. 11 | Composição, funcionamento, competências, requisitos para concessão de garantias, acompanhamento e avaliação de desempenho. | Profissionaliza a concessão de garantias; permite gestão de risco setorial. | Se a governança for fraca, o fundo pode acumular perdas; excesso de etapas pode reduzir agilidade. |\n| Instrumentos de Fomento | FGAM | Funcionamento | Resolução | Aplicações e instrumentos financeiros do FGAM | Arts. 12 e 13 | Regras para garantias de crédito, hedge de preços, liquidez ou performance contratual, coinvestimento, aquisição de direitos participativos ou remuneratórios. | Reduz volatilidade de projetos minerais; facilita project finance; melhora bancabilidade de projetos intensivos em capital. | Hedge e garantias mal estruturados podem gerar perdas relevantes; complexidade financeira aumenta risco de governança. |\n| Instrumentos de Fomento | FGAM | Funcionamento | Resolução | Isenção tributária das receitas do FGAM | Art. 14 | Condições orçamentárias e operacionais para isenção de IRPJ e CSLL das receitas dos fundos constituídos. | Aumenta retorno líquido do fundo e capacidade de concessão de garantias. | Gera renúncia fiscal; pode criar tratamento privilegiado frente a outros instrumentos de financiamento. |\n| Instrumentos de Fomento | FGAM | Funcionamento | Resolução | Aplicação obrigatória de receita das empresas em PD\\&I e FGAM | Art. 15 | Base de cálculo da receita operacional bruta líquida de tributos; forma de aplicação de 0,3% em PD\\&I e 0,2% no FGAM por 6 anos; regra posterior de 0,5% em PD\\&I; fiscalização; sanções; aportes mínimos. | Cria fonte estável de financiamento tecnológico; reduz dependência de orçamento público; força adensamento tecnológico da cadeia mineral. | Funciona como encargo setorial adicional; reduz margem de empresas em fase inicial; pode afetar competitividade de operações de menor escala. |\n| Instrumentos de Fomento | FGAM | Funcionamento | Resolução | Diretrizes para diversificação econômica dos territórios minerados | Art. 15 §4º | Diretrizes do CIMCE para uso de recursos destinados à diversificação econômica, governança participativa e controle social. | Diminui dependência local da mineração; reduz risco de cidades monoindustriais; pode melhorar aceitação social. | Se mal desenhado, vira gasto disperso sem produtividade; pode gerar disputas distributivas locais. |\n| Instrumentos de Fomento | PFMCE | Critérios; Processo; Funcionamento | Resolução | Programa Federal de Beneficiamento e Transformação de Minerais Críticos e Estratégicos — PFMCE | Arts. 16 a 22 | Instituição do programa; requisitos de habilitação; bens e serviços nacionais; parcela da produção para mercado interno; dispêndios elegíveis; outros compromissos; governança e avaliação. | Induz downstream industrial: beneficiamento, refino, materiais para baterias, ímãs, fertilizantes e reciclagem; pode reduzir importações estratégicas. | Conteúdo nacional e obrigação de abastecimento interno podem reduzir eficiência e preço de mercado; risco de subsídio a plantas sem competitividade global. |\n| Instrumentos de Fomento | PFMCE | Critérios; Processo; Funcionamento | Resolução | Crédito fiscal do PFMCE | Arts. 17, 18 e 21 | Percentual até 20%; dispêndios elegíveis; limites anuais de R$ 1 bilhão entre 2030 e 2034; compensação com tributos federais ou ressarcimento; procedimento concorrencial; beneficiários; sanções; limite de faturamento. | Reduz custo efetivo de investimento; melhora payback de plantas industriais; estimula contratos de longo prazo e integração da cadeia. | Renúncia fiscal relevante; risco de concentração do benefício em poucos grupos; incerteza orçamentária pode reduzir previsibilidade. |\n| Instrumentos de Fomento | PFMCE | Critérios; Processo; Funcionamento | Resolução | Procedimento concorrencial para créditos fiscais | Art. 18 §7º | Critérios de seleção, pontuação, desempate, transparência, recursos administrativos, cronograma, obrigações de execução. | Permite escolher projetos com maior retorno estratégico; evita distribuição automática de subsídios. | Pode aumentar burocracia; se critérios forem subjetivos, aumenta judicialização e lobby. |\n| Instrumentos de Fomento | PFMCE | Critérios; Processo; Funcionamento | Resolução | Produtos elegíveis ao crédito fiscal | Art. 18 §8º | Definição técnica de concentrados, grau bateria, carbonatos, hidróxidos, sulfatos, óxidos, materiais ativos de cátodo, precursores, insumos para ímãs permanentes, fertilizantes, sistemas de armazenamento de energia e “outros” definidos pelo CIMCE. | Direciona a política para cadeias de alto valor; ajuda a conectar mineração à indústria de baterias, motores elétricos, fertilizantes e energia. | Pode favorecer algumas rotas tecnológicas e excluir outras; risco de obsolescência se a lista não acompanhar inovação. |\n| Instrumentos de Fomento | PFMCE | Critérios; Processo; Funcionamento | Resolução | Contratos de longo prazo de compra vinculados ao crédito fiscal | Art. 18 §9º | Regras para compradores que firmem contratos de pelo menos 5 anos; elegibilidade, comprovação, volume, preço, penalidades e transferência do benefício. | Estimula offtake agreements; melhora bancabilidade dos projetos; dá previsibilidade de demanda. | Pode amarrar mercado a compradores específicos; contratos longos podem ficar desalinhados com preços internacionais. |\n| Instrumentos de Fomento | PFMCE | Critérios; Processo; Funcionamento | Resolução | Sanções por não implementação de projetos beneficiados | Art. 18 §10 | Cálculo de multa até 20% do crédito fiscal; devolução, estorno ou recolhimento; hipóteses de descumprimento. | Reduz oportunismo e projetos fictícios; protege orçamento público. | Penalidades mal calibradas podem desestimular projetos inovadores e de maior risco tecnológico. |\n| Instrumentos de Fomento | PFMCE | Critérios; Processo; Funcionamento | Resolução | Proporcionalidade do crédito fiscal à agregação de valor | Art. 18 §12 | Critérios e patamares mínimos de processamento para cada faixa de crédito. | Alinha incentivo ao objetivo industrial; evita subsídio a exportação de baixo processamento. | Pode induzir processamento artificial ou economicamente ineficiente apenas para acessar benefício. |\n| Instrumentos de Fomento | PFMCE | Critérios; Processo; Funcionamento | Resolução | Limite de faturamento anual das empresas beneficiárias | Art. 18 §13 e Art. 50 | Limite de faturamento para acessar crédito fiscal e debêntures; método de cálculo para grupos econômicos, consórcios e partes relacionadas. | Pode favorecer empresas médias e entrantes, reduzindo concentração. | Pode excluir empresas com capacidade real de executar grandes projetos; incentiva reestruturações societárias para enquadramento. |\n| Instrumentos de Fomento | PFMCE | Critérios; Processo; Funcionamento | Resolução | Uso de recursos do Fundo Nacional sobre Mudança do Clima — FNMC via BNDES | Art. 20 | Governança específica para operações reembolsáveis voltadas a beneficiamento, transformação e mineração urbana com mitigação/adaptação climática. | Conecta política mineral à política climática; reduz custo de financiamento de projetos de baixo carbono. | Pode disputar recursos com outros setores climáticos; risco de questionamento se projetos minerais tiverem impacto ambiental elevado. |\n| Instrumentos de Fomento | PFMCE | Critérios; Processo; Funcionamento | Resolução | Relatório anual do PFMCE | Art. 22 | Conteúdo, indicadores, metodologia de avaliação, transparência, metas e comparação custo-benefício. | Permite controle de efetividade dos incentivos; aumenta accountability. | Relatórios formais sem métricas econômicas robustas podem não corrigir falhas do programa. |\n| Instrumentos de Fomento | CMBC | Critérios; Processo; Funcionamento | Resolução | Certificado Mineral de Baixo Carbono — CMBC | Arts. 23 a 27 | Modelo de certificação voluntária; análise de ciclo de vida; escopos de emissões; fronteiras de certificação; modelo de custódia; suspensão; emissão negativa; atributos demandados por compradores; papéis de autoridade competente, reguladora, certificadora, acreditadora, registradora, produtor e comprador. | Pode gerar prêmio de preço, acesso a mercados exigentes e diferenciação ESG; favorece energia renovável e eficiência energética; fortalece imagem internacional do Brasil. | Custo de certificação pode ser alto; risco de greenwashing; ausência de reconhecimento internacional reduziria valor econômico do certificado. |\n| Instrumentos de Fomento | CMBC | Critérios; Processo; Funcionamento | Resolução | Interoperabilidade e reconhecimento internacional do CMBC | Art. 26 | Harmonização com padrões internacionais, acordos de reconhecimento mútuo e regras para certificados de minerais importados. | Facilita exportações e integração em cadeias globais; reduz barreiras técnicas ao comércio. | Se padrões brasileiros divergirem dos padrões globais, empresas terão dupla certificação e maior custo. |\n| Instrumentos de Fomento | CNPMCE | Critérios; Processo; Funcionamento | Resolução | Cadastro Nacional de Projetos de Minerais Críticos e Estratégicos — CNPMCE | Arts. 28 e 29 | Registro obrigatório; integração com SIGMINE; dados públicos; envio de informações por entes federais, estaduais, municipais e distritais; critérios de inclusão. | Cria pipeline nacional de projetos; melhora planejamento de infraestrutura, financiamento e licenciamento; aumenta transparência. | Pode expor informações sensíveis de projetos; aumenta custo de reporte; problemas de integração federativa podem atrasar habilitações. |\n| Instrumentos de Fomento | Leilões ANM | Critérios; Processo; Funcionamento | Resolução | Leilões de áreas com potencial para minerais críticos e estratégicos | Arts. 30 a 35 | Requisitos de participação, critérios de julgamento, preço mínimo, cronograma, uso de informações existentes, regras para áreas desoneradas, prazo máximo de pesquisa e caducidade. | Acelera alocação de áreas; reduz estoque de áreas paradas; pode aumentar arrecadação por bônus de assinatura e atrair exploradores qualificados. | Preços mínimos mal calibrados podem afastar investidores ou gerar especulação; prazo improrrogável de 10 anos pode ser rígido para projetos geologicamente complexos. |\n| Instrumentos de Fomento | Leilões ANM | Critérios; Processo; Funcionamento | Resolução | Aproveitamento de dados e documentos de áreas em disponibilidade | Art. 33 | Quais dados podem ser aproveitados pelo novo titular, condições de acesso, sigilo, remuneração ou transferência. | Reduz duplicação de estudos e tempo de pesquisa; melhora eficiência exploratória. | Pode gerar disputa sobre propriedade de dados e confidencialidade. |\n| Instrumentos de Fomento | Leilões ANM | Critérios; Processo; Funcionamento | Resolução | Preço mínimo de áreas leiloadas | Art. 34 | Diretrizes do CIMCE e metodologia da ANM para precificação de áreas com potencial mineral. | Pode capturar renda mineral para o Estado; melhora racionalidade econômica dos leilões. | Precificação excessiva reduz competição; precificação baixa transfere renda pública ao privado. |\n| Instrumentos de Fomento | Leilões ANM | Critérios; Processo; Funcionamento | Resolução | Prazo máximo de autorização de pesquisa | Art. 35 | Procedimentos para comprovar tempo gasto entre solicitação de funcionamento e licença de operação; caducidade; transição para área desonerada. | Combate retenção especulativa de áreas; acelera pesquisa mineral. | Pode penalizar projetos afetados por atrasos fora do controle do empreendedor; aumenta risco de perda de ativos. |\n| Instrumentos de Fomento | RNMCE | Critérios; Processo; Funcionamento | Resolução | Projetos de PD\\&I obrigatórios | Art. 36 | Temas elegíveis; projetos de geofísica, mapeamento, extração, beneficiamento, transformação, descarbonização, sustentabilidade, adaptação climática, recuperação de áreas degradadas, circularidade e logística; fiscalização pela ANM. | Cria base tecnológica nacional; melhora produtividade, segurança e competitividade; desenvolve soluções para rejeitos e reciclagem. | Pode gerar gasto obrigatório sem retorno se critérios de qualidade forem fracos; fiscalização complexa para a ANM. |\n| Instrumentos de Fomento | RNMCE | Critérios; Processo; Funcionamento | Resolução | Divisão dos recursos de PD\\&I entre empresas e parcerias | Art. 36 §1º | Aplicação de 50% pelas próprias empresas e 50% via empresas juniores, RNMCE ou instituições definidas pelo CIMCE. | Integra empresas, universidades, startups e instituições tecnológicas; forma ecossistema de inovação mineral. | Pode pulverizar recursos; instituições pouco maduras podem executar projetos de baixa qualidade. |\n| Instrumentos de Fomento | RNMCE | Critérios; Processo; Funcionamento | Resolução | Multa por descumprimento da aplicação em PD\\&I | Art. 36 §3º | Cálculo, cobrança, defesa administrativa e destinação da multa de 150% do valor não aplicado. | Dá força à obrigação de investimento tecnológico. | Penalidade alta pode gerar litígios e provisionamentos; aumenta risco para empresas com fluxo de caixa volátil. |\n| Instrumentos de Fomento | RNMCE | Critérios; Processo; Funcionamento | Resolução | Percentual mínimo para projetos-piloto, demonstração e escala | Art. 36 §4º | Percentual mínimo dos projetos de PD\\&I que deverão virar piloto, unidade de demonstração ou tecnologia de ampliação de escala. | Aumenta chance de inovação aplicada e industrializável; reduz distância entre pesquisa e mercado. | Projetos-piloto são caros e arriscados; pode desviar recursos de pesquisa básica necessária. |\n| Instrumentos de Fomento | RNMCE | Critérios; Processo; Funcionamento | Resolução | Rede Nacional de Pesquisa, Desenvolvimento Tecnológico e Formação Profissional — RNMCE | Art. 37 | Criação, composição, governança, adesão e exclusão de membros, competências, parcerias, encomendas tecnológicas, chamadas públicas, bolsas e fontes de recursos. | Forma mão de obra especializada; fortalece ICTs, startups e empresas de base tecnológica; reduz dependência tecnológica externa. | Governança fragmentada pode gerar sobreposição institucional; dependência de FNDCT e recursos públicos pode limitar escala. |\n| Instrumentos de Fomento | RNMCE | Critérios; Processo; Funcionamento | Resolução | Empresas juniores do setor mineral | Arts. 2º XVIII e 36 §1º | Critérios de enquadramento, governança, elegibilidade para receber recursos de PD\\&I, prestação de contas. | Pode dinamizar exploração mineral, inovação e empreendedorismo técnico. | Empresas juniores têm alto risco exploratório; sem governança, podem virar canal de projetos especulativos. |\n| Instrumentos de Fomento | Streaming e Royaties | Critérios; Processo; Funcionamento | Resolução | Contratos privados de streaming e royalties minerários | Art. 38 | Normas da ANM sobre averbação, publicidade, confidencialidade, efeitos erga omnes, execução específica, registro eletrônico e uso como garantia. | Abre nova fonte de financiamento para pesquisa e desenvolvimento de minas; melhora acesso de empresas menores a capital; aumenta liquidez de ativos minerários. | Pode comprometer receitas futuras dos projetos; estrutura contratual complexa pode gerar conflitos com credores, compradores e titulares minerários. |\n| Instrumentos de Fomento | Streaming e Royaties | Critérios; Processo; Funcionamento | Resolução | Uso de contratos averbados como garantia | Art. 38 §2º | Regras de prioridade, execução, limites de oneração e compatibilidade com direitos minerários. | Facilita operações de crédito; transforma fluxo mineral futuro em colateral. | Pode aumentar alavancagem e risco de insolvência; eventual execução pode afetar continuidade operacional. |\n| Instrumentos de Fomento | Incentivos Fin/Fis/Cre/Reg | Critérios; Processo; Funcionamento | Resolução | Incentivos fiscais e financeiros federativos | Art. 39 | Coordenação entre União, estados, municípios e DF; desenho de incentivos territoriais; compatibilidade com política fiscal e ambiental. | Permite pacotes regionais de atração de investimentos; fortalece polos minerais e industriais. | Pode gerar guerra fiscal; renúncia local sem retorno econômico; assimetria entre estados com maior capacidade fiscal. |\n| Instrumentos de Fomento | Debêntures | Critérios; Processo; Funcionamento | Resolução | Debêntures incentivadas e debêntures de infraestrutura para minerais críticos | Art. 40; Art. 50 | Projetos prioritários; exigências gerais; enquadramento automático ou ministerial; despesas de capital elegíveis; limite de faturamento; critérios ambientais e sociais. | Reduz custo de capital de longo prazo; atrai mercado de capitais para mineração, beneficiamento, transformação e mineração urbana. | Benefício fiscal pode concentrar-se em emissores mais sofisticados; risco de endividamento excessivo; renúncia fiscal. |\n| Instrumentos de Fomento | Reidi | Critérios; Processo; Funcionamento | Resolução | REIDI para mineração crítica e estratégica | Art. 47 | Aprovação de projetos de lavra, beneficiamento, transformação e mineração urbana para fruição do regime; compatibilidade orçamentária. | Reduz custo tributário de implantação; melhora viabilidade de CAPEX intensivo. | Renúncia fiscal; risco de beneficiar projetos que ocorreriam mesmo sem incentivo. |\n| Instrumentos de Fomento | PPI | Critérios; Processo; Funcionamento | Resolução | Inclusão de projetos no PPI | Art. 48 | Procedimento para qualificação de projetos de pesquisa, lavra, beneficiamento, transformação, mineração urbana e infraestrutura associada. | Dá prioridade institucional, coordenação e visibilidade para projetos estratégicos. | Pode privilegiar grandes projetos em detrimento de iniciativas menores; risco de centralização excessiva. |\n| Instrumentos de Fomento | P\\&D | Critérios; Processo; Funcionamento | ANM | Nova competência da ANM para habilitar projetos de PD\\&I | Art. 49 | Procedimentos internos da ANM para habilitação, análise, acompanhamento e fiscalização de projetos de pesquisa, desenvolvimento e inovação. | Fortalece capacidade estatal de orientar inovação mineral. | ANM pode precisar de orçamento, pessoal e sistemas; risco de sobrecarga regulatória. |\n| CIMCE | Geral | Critérios; Processo; Funcionamento | Resolução | Conselho Nacional para Industrialização de Minerais Críticos e Estratégicos — CIMCE | Arts. 41 e 45 | Instalação em até 90 dias; funcionamento; composição; atribuições; mandato; estabilidade; subcomitês; publicação de decisões; separação entre formulação de política, aprovação de projetos e análise societária/contratual. | Cria centro de coordenação estratégica; reduz fragmentação entre política mineral, industrial, tecnológica, climática e comercial. | Concentra poder decisório; se mal desenhado, vira gargalo de aprovação; risco de conflitos de interesse pela presença de representantes privados com voto. |\n| Outros | PNMCE | Critérios; Processo; Funcionamento | Resolução | Plano Nacional de Minerais Críticos e Estratégicos | Art. 41 §1º III “c” | Conteúdo, metas, prioridades, carteira de projetos, intercâmbio tecnológico, conexão com NIB, PNF, Plano Clima, PNM, PAC e economia circular. | Dá direção de longo prazo; orienta infraestrutura, financiamento e diplomacia econômica. | Plano genérico ou instável reduz credibilidade; conflito com outros planos nacionais pode gerar sobreposição. |\n| Instrumentos de Fomento | PNMCE | Critérios; | Resolução | Definição de projetos prioritários e “indústria nascente” | Art. 41 §1º III “e” e “f” | Critérios para alta tecnologia, cadeias minerárias de indústria nascente e produtos/processos estratégicos. | Permite política industrial seletiva; apoia segmentos em que o Brasil pode capturar valor futuro. | Escolha errada de “campeões” pode desperdiçar recursos; risco de proteção prolongada a setores ineficientes. |\n| CIMCE | Geral | Critérios; Processo; Funcionamento | Resolução | Regimento interno do CIMCE e separação de funções | Art. 41 §§2º e 3º | Regras de organização, subcomitês, quóruns, conflito de interesses, transparência, fundamentação, identificação de votantes e segregação de funções. | Aumenta legitimidade e reduz captura; melhora segurança jurídica. | Regras excessivamente complexas podem tornar o Conselho lento. |\n| CIMCE | Sanções | Critérios; Processo; Funcionamento | Resolução | Sanções por descumprimento das normas do CIMCE | Art. 41 §5º | Tipos de infração, dosimetria, processo administrativo, defesa, recurso e relação com sanções minerárias, civis e penais. | Dá efetividade à política; reduz comportamento oportunista. | Penalidades amplas demais podem aumentar risco regulatório e judicialização. |\n| Outros | Rastreabilidade | Critérios; Processo; Funcionamento | Resolução | Sistema de rastreabilidade da cadeia produtiva | Art. 44 | Registro obrigatório de transações e agentes; composição de materiais; origem; impacto ambiental; licença ambiental; outorga mineral; processos; responsável legal; jazida; logística reversa; conteúdo reciclado. | Combate mineração ilegal; melhora arrecadação e conformidade; facilita acesso a mercados com exigência de origem e ESG; valoriza produção formal. | Alto custo de implantação digital; impacto maior sobre pequenos operadores; risco de gargalo operacional em exportações e vendas internas. |\n| Outros | Rastreabilidade | Critérios; Processo; Funcionamento | Resolução | Credenciamento de entidades de rastreabilidade | Art. 44 §§3º a 6º | Regras para entidades públicas ou privadas operarem identificação, marcação, coleta, verificação, auditoria e certificação; segregação de funções; supervisão da ANM; suspensão e descredenciamento. | Cria mercado de serviços tecnológicos e de auditoria; aumenta confiabilidade dos dados. | Pode gerar custos recorrentes; risco de concentração em poucas certificadoras; conflitos de interesse se segregação for fraca. |\n| Outros | Rastreabilidade | Critérios; Processo; Funcionamento | Resolução | Tecnologia e interoperabilidade da rastreabilidade | Art. 44 §§7º a 9º | Padrões técnicos, segurança da informação, proteção de dados, sigilo empresarial, uso eventual de registro distribuído, interoperabilidade internacional, proporcionalidade por porte e complexidade. | Moderniza a governança mineral; facilita integração com cadeias globais; reduz fraudes. | Tecnologia cara ou imatura pode excluir empresas menores; vazamento de dados pode afetar competitividade. |\n| Outros | Mineração Urbana | Critérios; Processo; Funcionamento | Resolução | Rastreabilidade da mineração urbana | Art. 44 §10 | Como equiparar minerais recuperados de resíduos, baterias, eletroeletrônicos, veículos, entulho e aterros aos minerais primários para fins de rastreabilidade. | Estimula reciclagem, economia circular e suprimento secundário; reduz dependência externa e pressão sobre novas minas. | Cadeias de resíduos são fragmentadas e informais; custo de rastrear material reciclado pode ser elevado. |\n| Outros | Mineração Urbana | Critérios; Processo; Funcionamento | Resolução | Mineração urbana como política econômica | Arts. 2º XV, 7º §2º, 16, 17, 20, 44 §10 | Critérios de enquadramento, licenciamento, comprovação de recuperação mineral, incentivos, rastreabilidade, integração com logística reversa. | Cria nova indústria urbana; gera empregos, reduz importações e aproveita resíduos com valor econômico. | Necessita escala, tecnologia e logística; risco ambiental se desmontagem e refino forem informais. |\n| Outros | Integração com outras políticas | Critérios; Processo; Funcionamento | Resolução | Integração com políticas nacionais existentes | Art. 6º | Coordenação com PNM, Nova Indústria Brasil, Plano Nacional de Fertilizantes, ENCTI, PNDR, Plano de Transformação Ecológica, Plano Clima, Economia Circular e Novo PAC. | Evita políticas isoladas; permite convergir mineração, indústria, clima, fertilizantes e infraestrutura. | Sem governança clara, pode haver sobreposição de programas, competição orçamentária e metas conflitantes. |\n\n|  |  |  |  |\n| :-: | :-: | :-: | :-: |\n| Análise legal: decreto x resolução do Pleno |  |  |  |\n|  |  |  |  |\n| Instrumento | Base legal | Exige | Observação |\n| Mecanismo de triagem | Art. 2º, §2º | Decreto | Hipóteses, procedimentos e prazos |\n| Critérios do rol de minerais (econômicos, socioambientais, climáticos) | Art. 2º, §3º | Decreto | Lacuna: não há decreto próprio na lista atual de 2.1 — precisa ser criado ou incorporado ao decreto de agregação de valor |\n| Rol de minerais em si (a lista) | Decreto 13.118, art. 7º, III | Resolução | Só pode ser editada depois que o decreto acima fixar os critérios |\n| Agregação de valor / industrialização | Art. 8º | Decreto | — |\n| Requisitos de priorização (ESG, conteúdo local etc.) | Art. 7º, §1º | Decreto | Aplicável a todos os instrumentos do art. 7º |\n| Critérios/procedimentos gerais de todos os instrumentos do art. 7º | Art. 7º, parágrafo único | Decreto | Pode virar um decreto “guarda-chuva” ou vários específicos |\n| FGAM — comitê gestor, participação de entes federativos | Art. 10, §5º; art. 11, §1º | Decreto | — |\n| FGAM — % de recursos e obrigações de P\\&D\\&I | Art. 15 | Decreto | Mesmo artigo cobre FGAM e P\\&D\\&I |\n| FGAM — aporte mínimo, produtos elegíveis a crédito fiscal | Decreto 13.118, art. 7º, VII | Resolução | — |\n| CMBC — instituições, competências, atribuições | Art. 25 (parágrafo único) | Decreto | — |\n| CMBC — diretrizes de atuação do CIMCE | Decreto 13.118, art. 7º, XII | Resolução | — |\n| CNPMCE | Art. 28 | Decreto | — |\n| Leilões — requisitos e critérios de julgamento | Art. 30; art. 33 | Decreto | — |\n| Leilões — diretrizes de preço mínimo | Decreto 13.118, art. 7º, VIII | Resolução | — |\n| RNMCE — governança, adesão, exclusão | Art. 37, §3º | Decreto | — |\n| Sistema de rastreabilidade | Art. 44, §5º e §8º | Decreto | — |\n| PFMCE — habilitação, processo concorrencial | Decreto 13.118, art. 7º, VI (diretrizes) | Decreto + Resolução | O decreto regula o programa (art. 7º da Lei, parágrafo único); a resolução fixa as diretrizes de habilitação |\n| Integridade e transparência | Decreto 13.118, art. 20, VI | Regimento Interno (1.1) | Ajuste: isso não é uma resolução temática avulsa — a competência é do regimento interno, não do art. 7º |\n|  |  |  |  |\n|  |  |  |  |\n| Notas |  |  |  |\n|  |  |  |  |\n| Reli a Lei nº 15.506/2026 e o Decreto nº 13.118/2026 para separar, artigo por artigo, o que a lei exige por “regulamento” (ato do Poder Executivo, ou seja, decreto presidencial, art. 84, IV da Constituição) do que é competência do Próprio Pleno do CIMCE, exercida por resolução (art. 7º c/c art. 8º, §3º, do Decreto 13.118/2026). Conclusão geral: a classificação 2.1 (decretos) x 2.2 (resoluções) já construída está correta na sua lógica — o decreto fixa o arcabouço/regras do instrumento, a resolução fixa a diretriz ou o critério de atuação do CIMCE dentro desse arcabouço —, mas a leitura revelou uma lacuna e um ajuste de enquadramento: |  |  |  |\n| Duas implicações práticas: (1) falta incluir na agenda regulatória um decreto (ou seção de decreto) para os critérios de classificação dos minerais críticos e estratégicos — sem ele, a resolução do rol fica sem lastro normativo pleno; (2) “Integridade e Transparência” sai da lista de resoluções temáticas (2.2) e passa a ser tratado dentro do Regimento Interno (1.1), o que reduz as resoluções temáticas de 9 para 8 blocos + a resolução do rol de minerais. |  |  |  |\n\n|  |  |  |\n| :-: | :-: | :-: |\n| EAP gráfica — relações entre blocos e entregas (extraído dos diagramas) |  |  |\n|  |  |  |\n| Diagrama | De | Para |\n| Visão geral (todos os blocos) | PNMCE | CIMCE |\n| Visão geral (todos os blocos) | PNMCE | Mecanismos de Triagem |\n| Visão geral (todos os blocos) | PNMCE | Outras entregas |\n| Visão geral (todos os blocos) | PNMCE | CNPMCE - pré-requisito |\n| Visão geral (todos os blocos) | PNMCE | Instrumentos de Fomento |\n| Visão geral (todos os blocos) | PNMCE | Áreas Estratégicas |\n| Bloco 1 — CIMCE | CIMCE | Regimento Interno - 1.1 |\n| Bloco 1 — CIMCE | CIMCE | Pleno |\n| Bloco 1 — CIMCE | CIMCE | Comitê Executivo |\n| Bloco 1 — CIMCE | CIMCE | Secretaria-Executiva - 1.2 |\n| Bloco 1 — CIMCE | CIMCE | Monitoramento e Avaliação |\n| Bloco 2 — Mecanismos de Triagem | Mecanismos de Triagem | Controle societário |\n| Bloco 2 — Mecanismos de Triagem | Mecanismos de Triagem | Informações geológicas |\n| Bloco 2 — Mecanismos de Triagem | Mecanismos de Triagem | Participação relevante |\n| Bloco 2 — Mecanismos de Triagem | Mecanismos de Triagem | Contratos ou parcerias |\n| Bloco 2 — Mecanismos de Triagem | Mecanismos de Triagem | Alienação ou cessão |\n| Bloco 6 — Outras entregas | Outras entregas | Lista de MCEs |\n| Bloco 6 — Outras entregas | Outras entregas | Instrumentos regulatórios |\n| Bloco 6 — Outras entregas | Outras entregas | Instrumentos administrativos |\n| Bloco 6 — Outras entregas | Outras entregas | Informação de exportação |\n| Bloco 6 — Outras entregas | Outras entregas | Rastreabilidade |\n| Bloco 6 — Outras entregas | Outras entregas | Plano Nacional de MCEs |\n| Bloco 6 — Outras entregas | Outras entregas | Mineração urbana |\n| Bloco 6 — Outras entregas | Outras entregas | Parcerias e cooperação |\n| Bloco 6 — Outras entregas | Outras entregas | Articulação c/ outras políticas |\n| Bloco 3 — CNPMCE | CNPMCE | Sistema - cadastro |\n| Bloco 3 — CNPMCE | CNPMCE | Critérios de priorização |\n| Bloco 4 — Instrumentos de Fomento | Instrumentos de Fomento | FGAM - 3.1 |\n| Bloco 4 — Instrumentos de Fomento | Instrumentos de Fomento | PFMCE - 3.2 |\n| Bloco 4 — Instrumentos de Fomento | Instrumentos de Fomento | Certificado de Carbono - CMBC - 3.3 |\n| Bloco 4 — Instrumentos de Fomento | Instrumentos de Fomento | Leilões ANM - 3.5 |\n| Bloco 4 — Instrumentos de Fomento | Instrumentos de Fomento | P\\&D\\&I - 3.6 |\n| Bloco 4 — Instrumentos de Fomento | Instrumentos de Fomento | Streaming e Royalties - 3.8 |\n| Bloco 4 — Instrumentos de Fomento | Instrumentos de Fomento | Incentivos Fin/Fis/Cred/Reg - 3.9 |\n| Bloco 4 — Instrumentos de Fomento | Instrumentos de Fomento | BNDES Fundo Clima |\n| Bloco 4 — Instrumentos de Fomento | Instrumentos de Fomento | Debêntures |\n| Bloco 4 — Instrumentos de Fomento | Instrumentos de Fomento | Reidi |\n| Bloco 4 — Instrumentos de Fomento | Instrumentos de Fomento | PPI |\n| Bloco 4 — Instrumentos de Fomento | Instrumentos de Fomento | Priorização ambiental |\n| Bloco 5 — Áreas Estratégicas | Áreas Estratégicas | Cadeia de Imãs Permanentes |\n| Bloco 5 — Áreas Estratégicas | Áreas Estratégicas | Cadeia de Baterias |\n|  |  |  |\n|  |  |  |\n| Notas |  |  |\n|  |  |  |\n| Esta é a estrutura que você revisou e que passa a ser a referência principal da EAP gráfica: CIMCE, Mecanismos de Triagem, Outras entregas, CNPMCE, Instrumentos de Fomento e Áreas Estratégicas. O CNPMCE aparece como pré-requisito porque o art. 28, §3º, da Lei diz expressamente que os instrumentos de fomento só podem ser aplicados a projetos cadastrados no CNPMCE e habilitados pelo CIMCE — ou seja, isso é uma exigência legal, não só uma boa prática de sequenciamento. |  |  |\n| A numeração entre parênteses (1.1, 3.1 etc.) remete à EAP/WBS detalhada acima — nenhuma entrega foi perdida, só reagrupada nos 6 blocos. Essa numeração original permanece a referência no cronograma e no RACI. |  |  |\n\n|  |  |  |\n| :-: | :-: | :-: |\n| Roadmap executivo (calendário real, atualizado 19/09/2026) |  |  |\n|  |  |  |\n| Prioridade | Itens | Situação |\n| Set/Out 2026 | Estruturação do CIMCE (Decreto da Secretaria-Executiva + Regimento Interno), Mecanismos de Triagem (Decreto + Resolução), Lista de MCEs | Em andamento — ver marcos abaixo |\n| Nov/Dez 2026 | Cadastro Nacional de Projetos (CNPMCE); critérios para priorização de projetos; definição de áreas estratégicas; Plano Nacional de MCEs; Programa Federal de Beneficiamento (PFMCE); créditos fiscais e Fundo Garantidor (FGAM) | A iniciar |\n| Outras regulamentações (sem prazo definido) | Leilões de área com potencial; Pesquisa, Desenvolvimento e Inovação; RNMCE; CMBC; Sistema de Rastreabilidade | A iniciar |\n| Competências, sistemas digitais e monitoramento (Bloco 1) | Fluxos das 15 competências, sistemas de processo/rastreabilidade/transparência, indicadores | Segue o ritmo dos decretos e resoluções acima — ainda sem data própria confirmada |\n|  |  |  |\n|  |  |  |\n| Notas |  |  |\n|  |  |  |\n| Esta tabela substitui o antigo faseamento de 24 meses (M1–24) para os itens regulatórios e de fomento: o ritmo real é de semanas, não de trimestres. Os marcos com data abaixo detalham a prioridade Set/Out. |  |  |\n| Marco crítico: o ritmo real é Set/Out para CIMCE, triagem e lista de MCEs, e Nov/Dez para CNPMCE, critérios de priorização, PFMCE e FGAM — bem mais rápido do que os trimestres estimados antes. Sem o regimento interno (1.1) e o decreto de triagem (2.1), os Blocos 2, 4 e 5 continuam sem base normativa para avançar. |  |  |\n\n|  |  |  |  |  |  |\n| :-: | :-: | :-: | :-: | :-: | :-: |\n| Cronograma visual (Gantt) |  |  |  |  |  |\n|  |  |  |  |  |  |\n| Seção | Tarefa | Status | ID | Início | Duração |\n| Prioridade Set/Out | Sanção da Lei e Decreto CIMCE | done | m1 | 2026-09-16 | 1d |\n| Prioridade Set/Out | Decreto de Triagem | active | m2 | 2026-09-19 | 30d |\n| Prioridade Set/Out | Resolução - Regimento Interno | active | m3 | 2026-09-19 | 30d |\n| Prioridade Set/Out | Resolução - Lista de MCEs | active | m4 | 2026-09-19 | 30d |\n| Prioridade Set/Out | GT PNMCEs | planejado | m5 | 2026-10-15 | 15d |\n| Prioridade Nov/Dez | CNPMCE - cadastro | planejado | n1 | 2026-11-01 | 60d |\n| Prioridade Nov/Dez | Critérios de priorização | planejado | n2 | 2026-11-01 | 60d |\n| Prioridade Nov/Dez | Definição de áreas estratégicas | planejado | n3 | 2026-11-01 | 60d |\n| Prioridade Nov/Dez | Plano Nacional de MCEs | planejado | n4 | 2026-11-01 | 60d |\n| Prioridade Nov/Dez | PFMCE | planejado | n5 | 2026-11-01 | 60d |\n| Prioridade Nov/Dez | FGAM - créditos fiscais | planejado | n6 | 2026-11-01 | 60d |\n| Outras regulamentações (sem prazo definido) | Leilões de área | planejado | o1 | 2027-01-01 | 90d |\n| Outras regulamentações (sem prazo definido) | P,D\\&I | planejado | o2 | 2027-01-01 | 90d |\n| Outras regulamentações (sem prazo definido) | RNMCE | planejado | o3 | 2027-01-01 | 90d |\n| Outras regulamentações (sem prazo definido) | CMBC | planejado | o4 | 2027-01-01 | 90d |\n| Outras regulamentações (sem prazo definido) | Sistema de Rastreabilidade | planejado | o5 | 2027-01-01 | 90d |\n|  |  |  |  |  |  |\n|  |  |  |  |  |  |\n| Notas |  |  |  |  |  |\n|  |  |  |  |  |  |\n| Ritmo real (Set/Out e Nov/Dez de 2026), conforme o cronograma que você trouxe — bem mais rápido que o faseamento trimestral estimado antes. |  |  |  |  |  |\n| O detalhamento fase a fase, por bloco, continua na tabela “Roadmap executivo” acima. |  |  |  |  |  |\n\n|  |  |  |\n| :-: | :-: | :-: |\n| Dependências críticas |  |  |\n|  |  |  |\n| Entrega | Depende de | Impacto se atrasar |\n| Funcionamento formal do Pleno e do Comitê Executivo | 1.1 Regimento interno aprovado (art. 20 do Decreto) | Pleno não pode deliberar por resolução; Comitê Executivo não formaliza deliberações |\n| Instrução de processos (triagem, habilitação) | 1.2 Áreas da Secretaria-Executiva estruturadas | Comitê Executivo decide sem instrução técnica adequada |\n| Sistema de triagem (Bloco 2) | 2.1 Decreto do mecanismo de triagem | Comitê Executivo não tem critério normativo para homologar ou negar operações societárias |\n| FGAM operacional | 2.1 Decreto do FGAM + 2.2 Resolução de aporte mínimo | Fundo não pode captar cotas nem conceder garantias |\n| PFMCE operacional | 2.1 Decreto do PFMCE + Decreto de agregação de valor (art. 8º) + 2.2 Resolução de diretrizes de habilitação | Créditos fiscais não têm base para habilitação |\n| CMBC operacional | 2.1 Decreto do CMBC + 2.2 Resolução de diretrizes do sistema | CIMCE não pode exercer a função de autoridade competente |\n| Leilões de áreas | 2.1 Decreto dos leilões + 2.2 Resolução de diretrizes de preço mínimo | ANM não tem diretriz de preço mínimo aprovada pelo Pleno |\n| Projetos prioritários ao Conselho de Governo | 5.1 Critérios de classificação e priorização (Resolução 2.2) | Projetos não acessam licenciamento ambiental especial |\n| Painel executivo e monitoramento (Bloco 1) | 6.x Sistemas de cadastro, rastreabilidade e integrações | Indicadores estratégicos, tecnológicos e ambientais ficam sem dado confiável |\n| 3 subsecretarias da Secretaria-Executiva operacionais (Política/Fomento; Cadastro/Habilitação; Triagem) | Publicação do decreto que altera o Decreto nº 11.427/2023 (estrutura regimental do MDIC), hoje em minuta (SEI 52315.001502/2026-55) | Subsecretarias seguem sem cargos e competências formalizadas; instrução técnica ao Comitê Executivo fica sem base jurídica |\n| Resolução do rol de minerais críticos e estratégicos (2.2) | Decreto com os critérios de classificação (art. 2º, §3º da Lei) — lacuna identificada na análise legal, ainda não está na lista de decretos | Resolução fica sem lastro normativo pleno, mesmo com a lista já quase fechada |\n| Acesso de qualquer projeto aos instrumentos de fomento (Blocos 4 e 5 inteiros) | Projeto cadastrado no CNPMCE e habilitado pelo CIMCE (art. 28, §3º da Lei) | Nenhum instrumento de fomento pode ser aplicado, mesmo com FGAM/PFMCE/etc. já operacionais |\n\n|  |  |  |  |  |  |\n| :-: | :-: | :-: | :-: | :-: | :-: |\n| Matriz RACI |  |  |  |  |  |\n|  |  |  |  |  |  |\n| Entrega | Pleno CIMCE | Comitê Executivo | Secretaria-Executiva | Ministério/Órgão setorial | ANM |\n| 1.1 Regimento Interno | A | I | R | — | — |\n| 1.2 Secretaria-Executiva | I | I | R | A (MDIC) | — |\n| 1.3 Estrutura Administrativa e Digital | I | I | R | A (MDIC) | — |\n| 2.1 Decretos presidenciais | C | I | R | C | C |\n| 2.2 Resoluções do Pleno | A | C | R | — | — |\n| 3.1 FGAM | A | I | R | R (Ministério da Fazenda) | I |\n| 3.2 PFMCE | A | R | C | a definir | C |\n| 3.3 CMBC | A | R | C | a definir | C |\n| 3.4 CNPMCE | I | I | R | a definir | C |\n| 3.5 Leilões de áreas | A | C | C | a definir | R |\n| 3.6 Projetos de P,D\\&I | C | A | C | R (MCTI) | C |\n| 3.7 RNMCE | A | C | C | R (MCTI e MEC) | — |\n| 3.8 Streaming e royalties minerários | I | C | C | a definir | R |\n| 3.9 Incentivos fiscais, financeiros e creditícios | A | I | C | a definir | — |\n| 4.1 Sistema de triagem (5 modalidades) | I | A | R | — | C |\n| 5.1 Competências do CIMCE | A | R | R | — | C |\n| 6.x Sistemas, processos e transformação digital | I | I | R | A (MDIC) | C |\n| 7.x Monitoramento e avaliação da política | A | I | R | — | I |\n|  |  |  |  |  |  |\n|  |  |  |  |  |  |\n| Notas |  |  |  |  |  |\n|  |  |  |  |  |  |\n| R = Responsável (executa) · A = Aprova (accountable) · C = Consultado · I = Informado. Papéis do Pleno, Comitê Executivo e Secretaria-Executiva seguem as competências dos arts. 7º, 10 e 13 do Decreto nº 13.118/2026; a coluna “Ministério/Órgão setorial” só traz nome onde já foi indicado — o restante segue “a definir”. |  |  |  |  |  |\n| Conforme você for indicando os responsáveis setoriais que faltam, eu atualizo as linhas marcadas “a definir”. |  |  |  |  |  |\n\n|  |  |  |  |\n| :-: | :-: | :-: | :-: |\n| Riscos-chave |  |  |  |\n|  |  |  |  |\n| Risco | Probabilidade | Impacto | Mitigação |\n| Atraso na aprovação do regimento interno | Média | Alto | Priorizar a minuta na primeira reunião ordinária do Pleno; usar convocação extraordinária se necessário |\n| Descompasso entre os 10 decretos e as 9 resoluções (dependências cruzadas) | Alta | Alto | Sequenciar por dependência real (não por ordem da lei); comitê de acompanhamento da agenda regulatória |\n| Secretaria-Executiva sem quadro técnico suficiente | Alta | Alto | Plano de alocação/cessão de servidores junto ao MDIC nos primeiros 90 dias |\n| Sistemas digitais (Bloco 1) atrasando a operação dos instrumentos de fomento | Média | Médio | Operar fases iniciais com processo manual/eletrônico simplificado antes da integração completa |\n| Conflito de competências com a ANM (leilões, informações geológicas) | Média | Médio | Governança ANM-CIMCE formalizada antes do decreto de leilões entrar em vigor |\n| Baixa adesão de instituições à RNMCE | Média | Médio | Programa de bolsas e parcerias com editais lançados já na Fase 2 |\n| Indicadores sem dado histórico confiável | Alta | Médio | Definir metodologia e linha de base no Bloco 1 (indicadores) antes do fim da Fase 1 |\n| Decreto de estruturação da Secretaria-Executiva (altera Decreto 11.427/2023) atrasa por faltar assinatura do Ministro da Fazenda | Média | Alto | Acompanhar tramitação no processo SEI 52315.001502/2026-55 junto à Casa Civil e ao Ministério da Fazenda; operar as 3 subsecretarias de forma informal enquanto o decreto não é publicado |\n\n|  |  |  |\n| :-: | :-: | :-: |\n| Próximos passos imediatos |  |  |\n|  |  |  |\n| Prazo | Ação | Depende de |\n| Set/Out 2026 | Finalizar e aprovar a minuta do Regimento Interno do CIMCE (1.1, já quase pronta) | — |\n| Set/Out 2026 | Finalizar e publicar o Decreto de Triagem (2.1, já quase pronto) | — |\n| Set/Out 2026 | Fechar e aprovar a Resolução da Lista de MCEs (2.2, já quase fechada) | Decreto de critérios de classificação (lacuna identificada) |\n| Set/Out 2026 | Acompanhar a tramitação e obter a assinatura pendente (Ministério da Fazenda) do decreto que cria as 3 subsecretarias da Secretaria-Executiva (SEI 52315.001502/2026-55) | — |\n| Out 2026 | Instituir o GT PNMCEs (1.4) | Regimento interno aprovado |\n| Nov/Dez 2026 | Colocar em operação o CNPMCE (cadastro) | Regimento interno e decreto de triagem publicados |\n| Nov/Dez 2026 | Aprovar critérios de priorização de projetos e definição de áreas estratégicas | — |\n| Nov/Dez 2026 | Aprovar o Plano Nacional de MCEs | Rol de minerais fechado |\n| Nov/Dez 2026 | Publicar o decreto do PFMCE e a resolução de diretrizes de habilitação | Decreto de agregação de valor (art. 8º) |\n| Nov/Dez 2026 | Publicar o decreto do FGAM e habilitar créditos fiscais | — |\n| A partir de 2027 | Sequenciar leilões, P,D\\&I, RNMCE, CMBC e rastreabilidade (sem prazo definido ainda) | Conclusão da prioridade Nov/Dez |\n\n|  |  |  |  |  |\n| :-: | :-: | :-: | :-: | :-: |\n| \\[merged\\] Pontos focais nos ministérios do Pleno do CIMCE e órgãos de apoio | \\[merged\\] Pontos focais nos ministérios do Pleno do CIMCE e órgãos de apoio |  |  |  |\n|  |  |  |  |  |\n| Ministérios com assento no Pleno do CIMCE (art. 6º do Decreto nº 13.118/2026), acrescidos dos órgãos de apoio jurídico e financeiro ao CIMCE (SAJ, BNDES, FINEP). No mínimo 2 linhas por ministério/órgão; preencher/atualizar Nome, Cargo, Telefone e E-mail à medida que forem indicados. |  |  |  |  |\n|  |  |  |  |  |\n| Ministério / Órgão | Nome | Cargo | Telefone | E-mail |\n| Casa Civil/SAM | Rodrigo Rodrigues da Fonseca | Secretário-Adjunto da SAM | 3411-1408 | rodrigo.fonseca@presidencia.gov.br |\n| Casa Civil/SAM | Gustavo Melo | Gerente de Projeto — SAM | 3411-1408 |  |\n| Casa Civil/SAM | Pedro Araújo Guanais | Gerente de Projeto — SAM | 3411-3199 | pedro.guanais@presidencia.gov.br |\n| Casa Civil/SAJ | Marcelo Weick | Secretário Especial para Assuntos Jurídicos | 3411-1810 |  |\n| Casa Civil/SAJ | Danton Mello | Assessor | 3411-1810 |  |\n| Gabinete de Segurança Institucional | Francisco das Chagas Lemos Júnior | Diretor do Departamento de Assuntos da Câmara de Relações Exteriores e Defesa Nacional | 3411-4293 | lemos.junior@presidencia.gov.br |\n| Gabinete de Segurança Institucional |  |  |  |  |\n| Ministério da Agricultura e Pecuária | Rafael Vivian | Assessor | 3218-3726 | rafael.vivian@agro.gov.br |\n| Ministério da Agricultura e Pecuária |  |  |  |  |\n| Ministério da Ciência, Tecnologia e Inovação | Daniel Gomes de Almeida Filho | Secretário de Desenvolvimento Tecnológico e Inovação | 2033-7916/8555 | setec@mcti.gov.br |\n| Ministério da Ciência, Tecnologia e Inovação | Osório Coelho | Diretor | 2033-7532 | depin@mcti.gov.br |\n| Ministério da Defesa | André Conde | Contra-Almirante (RM1) |  | andre.conde@defesa.gov.br |\n| Ministério da Defesa |  |  |  |  |\n| Ministério do Desenvolvimento, Indústria, Comércio e Serviços | Rodrigo Zerbone | Secretário Executivo | 2027-7042/7566 |  |\n| Ministério do Desenvolvimento, Indústria, Comércio e Serviços | Uallace Moreira Lima | Secretário de Desenvolvimento Industrial, Inovação, Comércio e Serviços | 2027-7070/7185 |  |\n| Ministério do Desenvolvimento, Indústria, Comércio e Serviços | Luís Felipe Giesteira | Secretário-Adjunto (indicado) |  | felipe.giesteira@mdic.gov.br |\n| Ministério do Desenvolvimento, Indústria, Comércio e Serviços | Ana Caroline Suzuki Bellucci | Coordenadora-Geral do Complexo Químico e Petroquímico (indicada) |  | ana.bellucci@mdic.gov.br |\n| Ministério do Desenvolvimento, Indústria, Comércio e Serviços | Tólio Edeo Ribeiro | Coordenador-Geral das Indústrias de Metalurgia e de Base Floresta (indicado) |  | tolio.ribeiro@mdic.gov.br |\n| Ministério do Desenvolvimento, Indústria, Comércio e Serviços | Leonardo Durans | Diretor de Desenvolvimento da Indústria de Insumos e Materiais Intermediários | 2027-7110 |  |\n| Ministério do Desenvolvimento, Indústria, Comércio e Serviços | Gabriel Coelho Squeff | Diretor de Programa |  | gabriel.squeff@gestao.gov.br |\n| Ministério da Fazenda | Régis Anderson Dudena | Secretário de Reformas Econômicas | 3412-2151 |  |\n| Ministério da Fazenda | Gustavo Henrique Ferreira | Subsecretário de Acompanhamento Econômico e Regulação | 3412-1818 |  |\n| Ministério da Gestão e da Inovação em Serviços Públicos | Felipe Guth |  |  |  |\n| Ministério da Gestão e da Inovação em Serviços Públicos | Gabriel Squef |  |  |  |\n| Ministério da Gestão e da Inovação em Serviços Públicos | Elisa Leonel | Secretária de Coordenação das Estatais | 2020-4326/4142 |  |\n| Ministério do Meio Ambiente e Mudança do Clima | André Andrade | Assessor Especial | 2028-1451 | andre.andrade@mma.gov.br |\n| Ministério do Meio Ambiente e Mudança do Clima | Moara Menta Giasson | Diretora de Políticas de Avaliação de Impactos Ambientais | 2028-1582 | moara.giasson@mma.gov.br |\n| Ministério de Minas e Energia | Anderson Barreto Arruda | Secretário Nacional de Geologia, Mineração e Transformação Mineral | 2032-5177/5175 |  |\n| Ministério de Minas e Energia | Gustavo Santos Masili | Coordenador-Geral | 2032-5157 |  |\n| Ministério do Planejamento e Orçamento |  |  |  |  |\n| Ministério do Planejamento e Orçamento |  |  |  |  |\n| Ministério das Relações Exteriores | Embaixador Mauricio Carvalho Lyrio | Secretário de Clima, Energia e Meio Ambiente do MRE | 2030-8126 | seclima@itamaraty.gov.br |\n| Ministério das Relações Exteriores | João Marcos Senise Paes Leme | Diretor do Departamento de Energia | 2030-9772 | joao.leme@itamaraty.gov.br |\n| Secretaria-Geral da Presidência da República | Marcelo Trindade Miterhof |  | 3411-1389 | marcelo.miterhof@presidencia.gov.br |\n| Secretaria-Geral da Presidência da República |  |  |  |  |\n| BNDES | José Luis Gordon | Diretor de Desenvolvimento Produtivo, Inovação e Comércio Exterior | (21) 3747-6264 |  |\n| BNDES |  |  |  |  |\n| FINEP | Elias Ramos de Souza | Diretor de Inovação | (21) 2555-0655 |  |\n| FINEP | Newton Hamatsu | Superintendente de Transição Energética | (21) 2555-3997 |  |";
+const SNAPSHOT_DATE = '24 de setembro de 2026';
+const HAS_CHART = typeof Chart !== 'undefined';
+function markChartsOffline() {
+  if (HAS_CHART) return;
+  document.querySelectorAll('.chart-box').forEach(el => {
+    el.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;min-height:200px;text-align:center;color:#5c6b80;font-size:12.5px;padding:0 20px;">Gráfico indisponível: é preciso conexão com a internet para carregar a biblioteca de gráficos (cdn.jsdelivr.net). Os demais dados do painel estão completos.</div>';
+  });
+}
+const FILE_ID = '1vpa_s_NQ84ocam3kqU83D72BcQAN-43tSN74q4V1UvM';
+const MCP_SERVER = 'Google Drive';
+const MCP_TOOL = 'read_file_content';
+
+/* ---------------- Parsing helpers ---------------- */
+function cleanCell(s) {
+  return (s || '').replace(/\\&/g, '&').replace(/\\-/g, '-').replace(/\\\|/g, '|').replace(/\\~/g, '~').replace(/\\</g, '<').trim();
+}
+function parseBlock(block) {
+  const lines = block.split('\n');
+  const tableLines = lines.filter(l => l.trim().startsWith('|'));
+  if (!tableLines.length) return null;
+  const rows = tableLines.map(line => {
+    let t = line.trim();
+    if (t.startsWith('|')) t = t.slice(1);
+    if (t.endsWith('|')) t = t.slice(0, -1);
+    return t.split('|').map(c => c.trim());
+  });
+  const isSepRow = row => row.every(c => c === '' || /^:?-+:?$/.test(c));
+  const nonEmptyCount = row => row.filter(c => c !== '').length;
+  let header = null;
+  const dataRows = [];
+  for (const row of rows) {
+    if (isSepRow(row)) {
+      if (header !== null && dataRows.length > 0) break;
+      continue;
+    }
+    if (header === null) {
+      if (nonEmptyCount(row) < 2) continue;
+      const nonEmptyVals = row.filter(c => c !== '');
+      if (nonEmptyVals.length >= 2 && nonEmptyVals.every(c => c === nonEmptyVals[0])) continue;
+      header = row.map(cleanCell);
+      continue;
+    }
+    dataRows.push(row.map(cleanCell));
+  }
+  if (!header) return null;
+  return { header, rawRows: dataRows, rows: dataRows.map(r => { const o = {}; header.forEach((h, i) => o[h] = r[i] ?? ''); return o; }) };
+}
+function parseAllTables(text) { return text.split(/\n\s*\n/).map(parseBlock).filter(Boolean); }
+function findTableByHeader(tables, requiredCols) { return tables.find(t => requiredCols.every(c => t.header.includes(c))); }
+function escapeHtml(s) { return (s == null ? '' : String(s)).replace(/[&<>"']/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c])); }
+function fmtDateTimePtBr() {
+  const d = new Date();
+  const meses = ['janeiro','fevereiro','março','abril','maio','junho','julho','agosto','setembro','outubro','novembro','dezembro'];
+  const hh = String(d.getHours()).padStart(2,'0');
+  const mm = String(d.getMinutes()).padStart(2,'0');
+  return `${d.getDate()} de ${meses[d.getMonth()]} de ${d.getFullYear()} às ${hh}:${mm}`;
+}
+
+/* ---------------- Simple table (search + sort + paginate, no external lib) ---------------- */
+function createSimpleTable(container, { columns, pageSize }) {
+  pageSize = pageSize || 10;
+  let allRows = [];
+  let filtered = [];
+  let search = '';
+  let sortKey = null;
+  let sortDir = 1;
+  let page = 1;
+
+  container.innerHTML = `
+    <div class="st-toolbar"><input type="text" class="st-search" placeholder="Buscar..."></div>
+    <div class="st-scroll">
+      <table class="st-table">
+        <thead><tr>${columns.map(c => `<th data-key="${escapeHtml(c.key)}"${c.width ? ` style="min-width:${c.width}"` : ''}>${escapeHtml(c.label)}<span class="st-sort-ind"></span></th>`).join('')}</tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+    <div class="st-footer">
+      <span class="st-summary"></span>
+      <div class="st-pager">
+        <button type="button" class="st-prev" aria-label="Página anterior">‹</button>
+        <span class="st-page-label"></span>
+        <button type="button" class="st-next" aria-label="Próxima página">›</button>
+      </div>
+    </div>`;
+
+  const searchInput = container.querySelector('.st-search');
+  const tbody = container.querySelector('tbody');
+  const ths = [...container.querySelectorAll('thead th')];
+  const summaryEl = container.querySelector('.st-summary');
+  const pageLabelEl = container.querySelector('.st-page-label');
+  const prevBtn = container.querySelector('.st-prev');
+  const nextBtn = container.querySelector('.st-next');
+
+  function applyFilterSort() {
+    let rows = allRows;
+    if (search) {
+      const s = search.toLowerCase();
+      rows = rows.filter(r => columns.some(c => String(r[c.key] ?? '').toLowerCase().includes(s)));
+    }
+    if (sortKey) {
+      rows = rows.slice().sort((a, b) => String(a[sortKey] ?? '').localeCompare(String(b[sortKey] ?? ''), 'pt-BR') * sortDir);
+    }
+    filtered = rows;
+  }
+
+  function render() {
+    applyFilterSort();
+    const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize));
+    if (page > totalPages) page = totalPages;
+    const start = (page - 1) * pageSize;
+    const pageRows = filtered.slice(start, start + pageSize);
+
+    tbody.innerHTML = pageRows.length ? pageRows.map(r => `<tr>${columns.map(c => {
+      const raw = r[c.key];
+      const html = c.render ? c.render(raw, r) : (escapeHtml(raw) || '—');
+      return `<td>${html}</td>`;
+    }).join('')}</tr>`).join('') : `<tr><td class="st-empty" colspan="${columns.length}">Nenhum resultado encontrado.</td></tr>`;
+
+    summaryEl.textContent = (search || sortKey) ? `Mostrando ${filtered.length} de ${allRows.length}` : `${allRows.length} no total`;
+    pageLabelEl.textContent = `Página ${page} de ${totalPages}`;
+    prevBtn.disabled = page <= 1;
+    nextBtn.disabled = page >= totalPages;
+    ths.forEach(th => {
+      const ind = th.querySelector('.st-sort-ind');
+      ind.textContent = th.getAttribute('data-key') === sortKey ? (sortDir === 1 ? ' ▲' : ' ▼') : '';
+    });
+  }
+
+  searchInput.addEventListener('input', (e) => { search = e.target.value; page = 1; render(); });
+  ths.forEach(th => {
+    th.addEventListener('click', () => {
+      const k = th.getAttribute('data-key');
+      if (sortKey === k) sortDir = -sortDir; else { sortKey = k; sortDir = 1; }
+      page = 1; render();
+    });
+  });
+  prevBtn.addEventListener('click', () => { if (page > 1) { page--; render(); } });
+  nextBtn.addEventListener('click', () => { if (page < Math.ceil(filtered.length / pageSize)) { page++; render(); } });
+
+  return { setData(rows) { allRows = rows || []; page = 1; render(); } };
+}
+
+/* ---------------- Bloco taxonomy ---------------- */
+const BLOCO_ORDER = ['Bloco 1', 'Bloco 2', 'Bloco 3', 'Bloco 4', 'Bloco 5', 'Bloco 6'];
+const BLOCO_LABELS = {
+  'Bloco 1': 'CIMCE',
+  'Bloco 2': 'Mecanismos de Triagem',
+  'Bloco 3': 'CNPMCE',
+  'Bloco 4': 'Instrumentos de Fomento',
+  'Bloco 5': 'Áreas Estratégicas',
+  'Bloco 6': 'Outras entregas'
+};
+const BLOCO_DISPLAY_NUM = { 'Bloco 1': 1, 'Bloco 2': 2, 'Bloco 3': 3, 'Bloco 4': 4, 'Bloco 5': 5, 'Bloco 6': 6 };
+function blocoDisplayLabel(blocoKey) {
+  return 'Bloco ' + (BLOCO_DISPLAY_NUM[blocoKey] || '?') + ' — ' + (BLOCO_LABELS[blocoKey] || blocoKey);
+}
+const BLOCO_COLORS = {
+  'Bloco 1': '#1f3a5f',
+  'Bloco 2': '#8b3a3a',
+  'Bloco 3': '#2f6f62',
+  'Bloco 4': '#5b4b8a',
+  'Bloco 5': '#3a6ea5',
+  'Bloco 6': '#a3791f'
+};
+function normalizeBlocoKey(raw) {
+  const m = (raw || '').match(/^Bloco\s*(\d+)/);
+  return m ? ('Bloco ' + m[1]) : (raw || '');
+}
+
+/* ---------------- Regulamentações ---------------- */
+const REG_TEMA_COLORS = {
+  'CIMCE': '#1f3a5f',
+  'Mecanismos de Triagem': '#8b3a3a',
+  'Lista de MCEs': '#a3791f',
+  'CNPMCE': '#2f6f62',
+  'Instrumentos de Fomento': '#5b4b8a',
+  'Outros': '#3a6ea5'
+};
+function splitField(value, sep) {
+  if (!value || value === '-' || value === '\\-') return [];
+  return value.split(sep).map(s => s.trim()).filter(Boolean);
+}
+function normalizeStatusAcao(raw) {
+  const r = (raw || '').trim();
+  if (r.startsWith('Concluído')) return 'Concluído';
+  if (r.startsWith('Não iniciado')) return 'Não iniciado';
+  return r || '—';
+}
+function normalizeStatusGeral(raw) {
+  const trimmed = (raw || '').trim();
+  if (!trimmed) return 'Não informado';
+  const r = trimmed.toLowerCase();
+  if (r.startsWith('em andamento')) return 'Em andamento';
+  if (r.startsWith('não iniciado')) return 'Não iniciado';
+  return trimmed;
+}
+const STATUS_ACAO_COLORS = { 'Concluído': '#2f6f62', 'Não iniciado': '#93a1ad' };
+const STATUS_GERAL_COLORS = { 'Em andamento': '#a3791f', 'Não iniciado': '#93a1ad', 'Não informado': '#c3ccd4' };
+const STATUS_GERAL_BASE_ORDER = ['Em andamento', 'Não iniciado', 'Não informado'];
+
+/* ---------------- State ---------------- */
+let RAW_EAP = [];
+let RAW_CRONO = [];
+let RAW_REG = [];
+let RAW_PF = [];
+let charts = {};
+let tableAcoesInst = null;
+let tableRegInst = null;
+let tablePFInst = null;
+const filterState = { bloco: '', entrega: '', status: '' };
+const filterStateReg = { tema: '', tipoAto: '', modalidade: '' };
+const filterStateRegDetail = { tema: '', subtema: '' };
+const filterStatePF = { ministerio: '' };
+
+function destroyChart(key) { if (charts[key]) { charts[key].destroy(); delete charts[key]; } }
+
+/* ================= Data prep ================= */
+function prepareData(eapTable, cronoTable) {
+  RAW_EAP = eapTable.rows.map(r => Object.assign({}, r, {
+    blocoKey: normalizeBlocoKey(r['Bloco']),
+    blocoLabel: BLOCO_LABELS[normalizeBlocoKey(r['Bloco'])] || r['Bloco']
+  }));
+  RAW_CRONO = cronoTable.rows.map(r => Object.assign({}, r, {
+    blocoKey: normalizeBlocoKey(r['Bloco']),
+    blocoLabel: BLOCO_LABELS[normalizeBlocoKey(r['Bloco'])] || r['Bloco'],
+    statusAcaoNorm: normalizeStatusAcao(r['Status da ação']),
+    statusGeralNorm: normalizeStatusGeral(r['Status geral da entrega'])
+  }));
+}
+function prepareReg(regTable) {
+  RAW_REG = regTable.rows.map(r => Object.assign({}, r, {
+    modalidadeList: splitField(r['Modalidade'], ';')
+  }));
+}
+
+/* ================= Filtering ================= */
+function getFiltered({ ignoreBloco, ignoreEntrega, ignoreStatus } = {}) {
+  return RAW_CRONO.filter(r => {
+    if (!ignoreBloco && filterState.bloco && r.blocoKey !== filterState.bloco) return false;
+    if (!ignoreEntrega && filterState.entrega && r['Entrega'] !== filterState.entrega) return false;
+    if (!ignoreStatus && filterState.status && r.statusAcaoNorm !== filterState.status) return false;
+    return true;
+  });
+}
+function getFilteredReg({ ignoreTema, ignoreTipoAto, ignoreModalidade } = {}) {
+  return RAW_REG.filter(r => {
+    if (!ignoreTema && filterStateReg.tema && r['Tema'] !== filterStateReg.tema) return false;
+    if (!ignoreTipoAto && filterStateReg.tipoAto && r['Tipo de ato'] !== filterStateReg.tipoAto) return false;
+    if (!ignoreModalidade && filterStateReg.modalidade && !r.modalidadeList.includes(filterStateReg.modalidade)) return false;
+    return true;
+  });
+}
+
+/* ================= EAP tree ================= */
+function renderEapTree() {
+  const rowsForBlocoCounts = getFiltered({ ignoreBloco: true, ignoreEntrega: true });
+  const blocoCounts = new Map();
+  BLOCO_ORDER.forEach(k => blocoCounts.set(k, 0));
+  rowsForBlocoCounts.forEach(r => blocoCounts.set(r.blocoKey, (blocoCounts.get(r.blocoKey) || 0) + 1));
+
+  const blocoBox = document.getElementById('eapBlocoPills');
+  blocoBox.innerHTML = BLOCO_ORDER.map(k => {
+    const active = filterState.bloco === k;
+    const num = BLOCO_DISPLAY_NUM[k] || '?';
+    return `
+      <div class="eap-pill${active ? ' active' : ''}" data-bloco="${escapeHtml(k)}">
+        <div class="pill-top-row">
+          <span class="pill-dot" style="background:${BLOCO_COLORS[k]}"></span>
+          <span class="pill-num">BLOCO ${num}</span>
+          <span class="pill-count">${blocoCounts.get(k) || 0}</span>
+        </div>
+        <div class="pill-label">${escapeHtml(BLOCO_LABELS[k] || k)}</div>
+      </div>`;
+  }).join('');
+  blocoBox.querySelectorAll('.eap-pill').forEach(el => {
+    el.addEventListener('click', () => {
+      const k = el.getAttribute('data-bloco');
+      filterState.bloco = (filterState.bloco === k) ? '' : k;
+      filterState.entrega = '';
+      renderAll();
+    });
+  });
+
+  const entregaBox = document.getElementById('eapEntregaPills');
+  const emptyHint = document.getElementById('eapEmptyHint');
+  if (!filterState.bloco) {
+    entregaBox.innerHTML = '';
+    emptyHint.style.display = 'block';
+  } else {
+    emptyHint.style.display = 'none';
+    const rowsForEntregaCounts = getFiltered({ ignoreEntrega: true });
+    const entregaCounts = new Map();
+    rowsForEntregaCounts.forEach(r => entregaCounts.set(r['Entrega'], (entregaCounts.get(r['Entrega']) || 0) + 1));
+    const entregas = [...entregaCounts.keys()].sort((a, b) => a.localeCompare(b, 'pt-BR'));
+    entregaBox.innerHTML = entregas.map(e => {
+      const active = filterState.entrega === e;
+      return `
+        <div class="eap-pill entrega-pill${active ? ' active' : ''}" data-entrega="${escapeHtml(e)}">
+          <div class="pill-top-row">
+            <span class="pill-dot" style="background:${BLOCO_COLORS[filterState.bloco] || '#5c6b80'}"></span>
+            <span class="pill-num">ENTREGA</span>
+            <span class="pill-count">${entregaCounts.get(e) || 0}</span>
+          </div>
+          <div class="pill-label">${escapeHtml(e)}</div>
+        </div>`;
+    }).join('');
+    entregaBox.querySelectorAll('.eap-pill').forEach(el => {
+      el.addEventListener('click', () => {
+        const e = el.getAttribute('data-entrega');
+        filterState.entrega = (filterState.entrega === e) ? '' : e;
+        renderAll();
+      });
+    });
+  }
+
+  document.getElementById('eapResetBtn').style.display = (filterState.bloco || filterState.entrega) ? 'inline-flex' : 'none';
+}
+
+/* ================= Charts ================= */
+function richTooltip() {
+  return {
+    backgroundColor: 'rgba(12,44,78,0.96)', borderColor: 'rgba(255,255,255,0.12)', borderWidth: 1,
+    titleColor: '#fff', titleFont: { weight: '700' }, bodyColor: '#dce6ec', bodySpacing: 4,
+    padding: 12, cornerRadius: 8, boxPadding: 4, usePointStyle: true
+  };
+}
+
+function renderChartBloco() {
+  const rows = getFiltered({ ignoreBloco: true, ignoreEntrega: true });
+  const counts = new Map();
+  BLOCO_ORDER.forEach(k => counts.set(k, 0));
+  rows.forEach(r => counts.set(r.blocoKey, (counts.get(r.blocoKey) || 0) + 1));
+  const total = rows.length;
+  const labels = BLOCO_ORDER.map(k => blocoDisplayLabel(k));
+  const values = BLOCO_ORDER.map(k => counts.get(k) || 0);
+  const colors = BLOCO_ORDER.map(k => filterState.bloco && filterState.bloco !== k ? (BLOCO_COLORS[k] + '55') : BLOCO_COLORS[k]);
+
+  destroyChart('bloco');
+  const ctx = document.getElementById('chartBloco').getContext('2d');
+  charts.bloco = new Chart(ctx, {
+    type: 'bar',
+    data: { labels, datasets: [{ data: values, backgroundColor: colors, borderRadius: 6, maxBarThickness: 34 }] },
+    options: {
+      indexAxis: 'y', responsive: true, maintainAspectRatio: false,
+      onClick: (evt, els) => {
+        if (!els.length) return;
+        const k = BLOCO_ORDER[els[0].index];
+        filterState.bloco = (filterState.bloco === k) ? '' : k;
+        filterState.entrega = '';
+        setTimeout(renderAll, 0);
+      },
+      plugins: {
+        legend: { display: false },
+        tooltip: Object.assign(richTooltip(), { callbacks: {
+          label: (c) => { const pct = total ? ((c.raw / total) * 100).toFixed(1) : '0.0'; return ` ${c.raw} ações (${pct}%)`; }
+        } })
+      },
+      scales: {
+        x: { beginAtZero: true, ticks: { color: '#5c6b80', precision: 0 }, grid: { color: '#e4e4e4' } },
+        y: { ticks: { color: '#11253f', font: { size: 11.5, weight: '600' } }, grid: { display: false } }
+      }
+    }
+  });
+  document.getElementById('blocoCountLabel').textContent = total + ' ações consideradas neste gráfico';
+}
+
+function renderChartStatus() {
+  const rows = getFiltered({ ignoreStatus: true });
+  const order = ['Concluído', 'Não iniciado'];
+  const counts = new Map(order.map(s => [s, 0]));
+  rows.forEach(r => counts.set(r.statusAcaoNorm, (counts.get(r.statusAcaoNorm) || 0) + 1));
+  const total = rows.length;
+  const colors = order.map(s => filterState.status && filterState.status !== s ? (STATUS_ACAO_COLORS[s] + '55') : STATUS_ACAO_COLORS[s]);
+
+  destroyChart('status');
+  const ctx = document.getElementById('chartStatus').getContext('2d');
+  charts.status = new Chart(ctx, {
+    type: 'doughnut',
+    data: { labels: order, datasets: [{ data: order.map(s => counts.get(s) || 0), backgroundColor: colors, borderColor: '#f5f5f5', borderWidth: 2 }] },
+    options: {
+      responsive: true, maintainAspectRatio: false, cutout: '62%',
+      onClick: (evt, els) => {
+        if (!els.length) return;
+        const s = order[els[0].index];
+        filterState.status = (filterState.status === s) ? '' : s;
+        setTimeout(renderAll, 0);
+      },
+      plugins: {
+        legend: { position: 'bottom', labels: { color: '#11253f', usePointStyle: true, pointStyle: 'circle', boxWidth: 8, boxHeight: 8, padding: 16, font: { weight: '600', size: 11.5 } } },
+        tooltip: Object.assign(richTooltip(), { callbacks: {
+          label: (c) => { const pct = total ? ((c.raw / total) * 100).toFixed(1) : '0.0'; return ` ${c.label}: ${c.raw} (${pct}%)`; }
+        } })
+      }
+    }
+  });
+  document.getElementById('statusCountLabel').textContent = total + ' ações consideradas neste gráfico';
+}
+
+function renderChartStatusGeral() {
+  const rows = getFiltered();
+  const extra = [...new Set(rows.map(r => r.statusGeralNorm))].filter(s => !STATUS_GERAL_BASE_ORDER.includes(s)).sort((a, b) => a.localeCompare(b, 'pt-BR'));
+  const order = STATUS_GERAL_BASE_ORDER.concat(extra).filter(s => rows.some(r => r.statusGeralNorm === s));
+  const perBloco = new Map();
+  BLOCO_ORDER.forEach(k => { const o = {}; order.forEach(s => o[s] = 0); perBloco.set(k, o); });
+  rows.forEach(r => { const o = perBloco.get(r.blocoKey); if (o) o[r.statusGeralNorm] = (o[r.statusGeralNorm] || 0) + 1; });
+  const labels = BLOCO_ORDER.map(k => 'Bloco ' + (BLOCO_DISPLAY_NUM[k] || '?'));
+  const datasets = order.map(s => ({
+    label: s,
+    data: BLOCO_ORDER.map(k => perBloco.get(k)[s] || 0),
+    backgroundColor: STATUS_GERAL_COLORS[s] || '#7d8b98',
+    borderRadius: 4,
+    maxBarThickness: 28
+  }));
+
+  destroyChart('statusGeral');
+  const ctx = document.getElementById('chartStatusGeral').getContext('2d');
+  charts.statusGeral = new Chart(ctx, {
+    type: 'bar',
+    data: { labels, datasets },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: { position: 'bottom', labels: { color: '#11253f', usePointStyle: true, pointStyle: 'circle', boxWidth: 8, boxHeight: 8, padding: 16, font: { weight: '600', size: 11.5 } } },
+        tooltip: Object.assign(richTooltip(), { mode: 'index', intersect: false })
+      },
+      scales: {
+        x: { stacked: true, ticks: { color: '#5c6b80', font: { size: 11 } }, grid: { display: false } },
+        y: { stacked: true, beginAtZero: true, ticks: { color: '#5c6b80', precision: 0 }, grid: { color: '#e4e4e4' } }
+      }
+    }
+  });
+  document.getElementById('statusGeralCountLabel').textContent = rows.length + ' ações no total (soma das duas séries)';
+}
+
+function renderChartResponsavel() {
+  const rows = getFiltered();
+  const counts = new Map();
+  rows.forEach(r => { const resp = r['Responsável'] || '—'; counts.set(resp, (counts.get(resp) || 0) + 1); });
+  let entries = [...counts.entries()].sort((a, b) => b[1] - a[1]);
+  const TOP_N = 8;
+  let labels, values;
+  if (entries.length > TOP_N) {
+    const top = entries.slice(0, TOP_N);
+    const outrosTotal = entries.slice(TOP_N).reduce((s, e) => s + e[1], 0);
+    labels = top.map(e => e[0]).concat(['Outros']);
+    values = top.map(e => e[1]).concat([outrosTotal]);
+  } else {
+    labels = entries.map(e => e[0]);
+    values = entries.map(e => e[1]);
+  }
+  const total = rows.length;
+
+  destroyChart('responsavel');
+  const ctx = document.getElementById('chartResponsavel').getContext('2d');
+  charts.responsavel = new Chart(ctx, {
+    type: 'bar',
+    data: { labels, datasets: [{ data: values, backgroundColor: '#1a4d85', borderRadius: 6, maxBarThickness: 22 }] },
+    options: {
+      indexAxis: 'y', responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: Object.assign(richTooltip(), { callbacks: {
+          label: (c) => { const pct = total ? ((c.raw / total) * 100).toFixed(1) : '0.0'; return ` ${c.raw} ações (${pct}%)`; }
+        } })
+      },
+      scales: {
+        x: { beginAtZero: true, ticks: { color: '#5c6b80', precision: 0 }, grid: { color: '#e4e4e4' } },
+        y: { ticks: { color: '#11253f', font: { size: 10.5, weight: '600' } }, grid: { display: false } }
+      }
+    }
+  });
+  document.getElementById('responsavelCountLabel').textContent = entries.length + ' responsável(is) distintos nos filtros ativos';
+}
+
+/* ================= EAP catalog ================= */
+function renderCatalog() {
+  let rows = RAW_EAP;
+  if (filterState.bloco) rows = rows.filter(r => r.blocoKey === filterState.bloco);
+  const box = document.getElementById('catalogList');
+  const sub = document.getElementById('catalogSub');
+  sub.textContent = filterState.bloco
+    ? `${rows.length} entregas do ${blocoDisplayLabel(filterState.bloco)}`
+    : `${rows.length} entregas catalogadas nos 6 blocos`;
+  box.innerHTML = rows.length ? rows.map(r => `
+    <div class="catalog-item">
+      <div class="cat-bloco">${escapeHtml(blocoDisplayLabel(r.blocoKey))}</div>
+      <div class="cat-entrega">${escapeHtml(r['Entrega'])}</div>
+      <div class="cat-desc">${escapeHtml(r['Descrição'])}</div>
+    </div>`).join('') : '<div class="catalog-empty">Nenhuma entrega catalogada para este filtro.</div>';
+}
+
+/* ================= Table: Ações Detalhadas ================= */
+function statusBadgeHtml(status, kind) {
+  let cls = 'nao-iniciado';
+  if (kind === 'acao') cls = status === 'Concluído' ? 'concluido' : 'nao-iniciado';
+  else cls = status === 'Em andamento' ? 'andamento' : 'nao-iniciado';
+  return `<span class="status-badge ${cls}">${escapeHtml(status)}</span>`;
+}
+function renderTable() {
+  const rows = getFiltered().sort((a, b) => (BLOCO_DISPLAY_NUM[a.blocoKey] || 99) - (BLOCO_DISPLAY_NUM[b.blocoKey] || 99))
+    .map(r => Object.assign({}, r, { blocoDisplay: blocoDisplayLabel(r.blocoKey) }));
+  if (!tableAcoesInst) {
+    tableAcoesInst = createSimpleTable(document.getElementById('tableAcoesContainer'), {
+      pageSize: 12,
+      columns: [
+        { key: 'blocoDisplay', label: 'Bloco', width: '150px' },
+        { key: 'Entrega', label: 'Entrega', width: '150px' },
+        { key: 'Ação', label: 'Ação', width: '320px' },
+        { key: 'statusAcaoNorm', label: 'Status da Ação', width: '110px', render: (v) => statusBadgeHtml(v, 'acao') },
+        { key: 'Responsável', label: 'Responsável', width: '150px' },
+        { key: 'Documento que valida a conclusão', label: 'Documento', width: '180px' },
+        { key: 'Predecessora', label: 'Predecessora', width: '120px' }
+      ]
+    });
+  }
+  tableAcoesInst.setData(rows);
+  document.getElementById('tableSub').textContent = `${rows.length} de ${RAW_CRONO.length} ações`;
+}
+
+/* ================= Regulamentações ================= */
+function tipoAtoBadgeHtml(tipo) {
+  return `<span class="status-badge andamento">${escapeHtml(tipo)}</span>`;
+}
+function renderChartRegTema() {
+  const rows = getFilteredReg({ ignoreTema: true });
+  const counts = new Map();
+  rows.forEach(r => { const t = r['Tema'] || '—'; counts.set(t, (counts.get(t) || 0) + 1); });
+  const entries = [...counts.entries()].sort((a, b) => b[1] - a[1]);
+  const total = rows.length;
+  const labels = entries.map(e => e[0]);
+  const values = entries.map(e => e[1]);
+  const colors = labels.map(t => {
+    const c = REG_TEMA_COLORS[t] || '#5c6b80';
+    return filterStateReg.tema && filterStateReg.tema !== t ? (c + '55') : c;
+  });
+
+  destroyChart('regTema');
+  const ctx = document.getElementById('chartRegTema').getContext('2d');
+  charts.regTema = new Chart(ctx, {
+    type: 'bar',
+    data: { labels, datasets: [{ data: values, backgroundColor: colors, borderRadius: 6, maxBarThickness: 30 }] },
+    options: {
+      indexAxis: 'y', responsive: true, maintainAspectRatio: false,
+      onClick: (evt, els) => {
+        if (!els.length) return;
+        const t = labels[els[0].index];
+        filterStateReg.tema = (filterStateReg.tema === t) ? '' : t;
+        setTimeout(renderRegAll, 0);
+      },
+      plugins: {
+        legend: { display: false },
+        tooltip: Object.assign(richTooltip(), { callbacks: {
+          label: (c) => { const pct = total ? ((c.raw / total) * 100).toFixed(1) : '0.0'; return ` ${c.raw} regulamentações (${pct}%)`; }
+        } })
+      },
+      scales: {
+        x: { beginAtZero: true, ticks: { color: '#5c7183', precision: 0 }, grid: { color: '#e4e4e4' } },
+        y: { ticks: { color: '#10202f', font: { size: 11.5, weight: '600' } }, grid: { display: false } }
+      }
+    }
+  });
+  document.getElementById('regTemaCountLabel').textContent = total + ' regulamentações consideradas neste gráfico';
+}
+
+function renderChartRegTipoAto() {
+  const rows = getFilteredReg({ ignoreTipoAto: true });
+  const counts = new Map();
+  rows.forEach(r => { const t = r['Tipo de ato'] || '—'; counts.set(t, (counts.get(t) || 0) + 1); });
+  const entries = [...counts.entries()].sort((a, b) => b[1] - a[1]);
+  const total = rows.length;
+  const labels = entries.map(e => e[0]);
+  const palette = ['#1a4d85', '#a3791f', '#8b3a3a', '#2f6f62', '#5b4b8a'];
+  const colors = labels.map((t, i) => {
+    const c = palette[i % palette.length];
+    return filterStateReg.tipoAto && filterStateReg.tipoAto !== t ? (c + '55') : c;
+  });
+
+  destroyChart('regTipoAto');
+  const ctx = document.getElementById('chartRegTipoAto').getContext('2d');
+  charts.regTipoAto = new Chart(ctx, {
+    type: 'doughnut',
+    data: { labels, datasets: [{ data: entries.map(e => e[1]), backgroundColor: colors, borderColor: '#f5f5f5', borderWidth: 2 }] },
+    options: {
+      responsive: true, maintainAspectRatio: false, cutout: '62%',
+      onClick: (evt, els) => {
+        if (!els.length) return;
+        const t = labels[els[0].index];
+        filterStateReg.tipoAto = (filterStateReg.tipoAto === t) ? '' : t;
+        setTimeout(renderRegAll, 0);
+      },
+      plugins: {
+        legend: { position: 'bottom', labels: { color: '#10202f', usePointStyle: true, pointStyle: 'circle', boxWidth: 8, boxHeight: 8, padding: 16, font: { weight: '600', size: 11.5 } } },
+        tooltip: Object.assign(richTooltip(), { callbacks: {
+          label: (c) => { const pct = total ? ((c.raw / total) * 100).toFixed(1) : '0.0'; return ` ${c.label}: ${c.raw} (${pct}%)`; }
+        } })
+      }
+    }
+  });
+  document.getElementById('regTipoAtoCountLabel').textContent = total + ' regulamentações consideradas neste gráfico';
+}
+
+function renderTableReg() {
+  const rows = getFilteredReg();
+  if (!tableRegInst) {
+    tableRegInst = createSimpleTable(document.getElementById('tableRegContainer'), {
+      pageSize: 10,
+      columns: [
+        { key: 'Tema', label: 'Tema', width: '130px' },
+        { key: 'Subtema', label: 'Subtema', width: '150px' },
+        { key: 'Modalidade', label: 'Modalidade', width: '130px' },
+        { key: 'Tipo de ato', label: 'Tipo de Ato', width: '120px', render: (v) => tipoAtoBadgeHtml(v) },
+        { key: 'Tema que requer regulamentação', label: 'Tema que Requer Regulamentação', width: '220px' },
+        { key: 'Dispositivos principais', label: 'Dispositivos Principais', width: '180px' },
+        { key: 'O que precisa ser regulado', label: 'O que Precisa ser Regulado', width: '280px' },
+        { key: 'Impactos econômicos positivos', label: 'Impactos Positivos', width: '260px' },
+        { key: 'Impactos econômicos negativos/riscos', label: 'Impactos Negativos/Riscos', width: '260px' }
+      ]
+    });
+  }
+  tableRegInst.setData(rows);
+  document.getElementById('regTableSub').textContent = `${rows.length} de ${RAW_REG.length} regulamentações`;
+}
+
+const REG_MODALIDADE_ORDER = ['Critérios', 'Processo', 'Funcionamento'];
+
+function populateRegFilterSelects() {
+  const temaSel = document.getElementById('filterRegTema');
+  const temas = [...new Set(RAW_REG.map(r => r['Tema']))].sort((a, b) => a.localeCompare(b, 'pt-BR'));
+  temaSel.innerHTML = '<option value="">Todos os temas</option>' + temas.map(t => `<option value="${escapeHtml(t)}">${escapeHtml(t)}</option>`).join('');
+
+  const tipoSel = document.getElementById('filterRegTipoAto');
+  const tipos = [...new Set(RAW_REG.map(r => r['Tipo de ato']))].sort((a, b) => a.localeCompare(b, 'pt-BR'));
+  tipoSel.innerHTML = '<option value="">Todos os tipos</option>' + tipos.map(t => `<option value="${escapeHtml(t)}">${escapeHtml(t)}</option>`).join('');
+
+  const modSel = document.getElementById('filterRegModalidade');
+  modSel.innerHTML = '<option value="">Todas as modalidades</option>' + REG_MODALIDADE_ORDER.map(m => `<option value="${escapeHtml(m)}">${escapeHtml(m)}</option>`).join('');
+}
+function syncRegSelects() {
+  document.getElementById('filterRegTema').value = filterStateReg.tema;
+  document.getElementById('filterRegTipoAto').value = filterStateReg.tipoAto;
+  document.getElementById('filterRegModalidade').value = filterStateReg.modalidade;
+}
+function wireRegFilterSelects() {
+  document.getElementById('filterRegTema').addEventListener('change', (e) => { filterStateReg.tema = e.target.value; renderRegAll(); });
+  document.getElementById('filterRegTipoAto').addEventListener('change', (e) => { filterStateReg.tipoAto = e.target.value; renderRegAll(); });
+  document.getElementById('filterRegModalidade').addEventListener('change', (e) => { filterStateReg.modalidade = e.target.value; renderRegAll(); });
+  document.getElementById('filterRegResetBtn').addEventListener('click', () => {
+    filterStateReg.tema = ''; filterStateReg.tipoAto = ''; filterStateReg.modalidade = ''; renderRegAll();
+  });
+}
+function updateRegFilterCountLabel() {
+  const rows = getFilteredReg();
+  const anyFilter = filterStateReg.tema || filterStateReg.tipoAto || filterStateReg.modalidade;
+  document.getElementById('filterRegCountLabel').innerHTML = anyFilter
+    ? `Mostrando <strong>${rows.length}</strong> de ${RAW_REG.length} regulamentações`
+    : `<strong>${RAW_REG.length}</strong> regulamentações no total`;
+}
+function renderRegAll() {
+  syncRegSelects();
+  if (HAS_CHART) {
+    renderChartRegTema();
+    renderChartRegTipoAto();
+  }
+  renderTableReg();
+  updateRegFilterCountLabel();
+  renderRegDetail();
+}
+
+/* ---------------- Regulamentações: quadro de detalhamento (Tema + Subtema) ---------------- */
+function populateRegDetailTemaSelect() {
+  const sel = document.getElementById('filterRegDetailTema');
+  const temas = [...new Set(RAW_REG.map(r => r['Tema']).filter(Boolean))].sort((a, b) => a.localeCompare(b, 'pt-BR'));
+  sel.innerHTML = '<option value="">Selecione um tema</option>' + temas.map(t => `<option value="${escapeHtml(t)}">${escapeHtml(t)}</option>`).join('');
+}
+function populateRegDetailSubtemaSelect() {
+  const sel = document.getElementById('filterRegDetailSubtema');
+  const tema = filterStateRegDetail.tema;
+  const pool = tema ? RAW_REG.filter(r => r['Tema'] === tema) : RAW_REG;
+  const subtemas = [...new Set(pool.map(r => r['Subtema']).filter(Boolean))].sort((a, b) => a.localeCompare(b, 'pt-BR'));
+  sel.innerHTML = '<option value="">Selecione um subtema</option>' + subtemas.map(s => `<option value="${escapeHtml(s)}">${escapeHtml(s)}</option>`).join('');
+}
+function populateRegDetailSelects() {
+  populateRegDetailTemaSelect();
+  populateRegDetailSubtemaSelect();
+}
+function syncRegDetailSelects() {
+  document.getElementById('filterRegDetailTema').value = filterStateRegDetail.tema;
+  document.getElementById('filterRegDetailSubtema').value = filterStateRegDetail.subtema;
+}
+function wireRegDetailSelects() {
+  document.getElementById('filterRegDetailTema').addEventListener('change', (e) => {
+    filterStateRegDetail.tema = e.target.value;
+    filterStateRegDetail.subtema = '';
+    populateRegDetailSubtemaSelect();
+    renderRegAll();
+  });
+  document.getElementById('filterRegDetailSubtema').addEventListener('change', (e) => {
+    filterStateRegDetail.subtema = e.target.value;
+    renderRegAll();
+  });
+  document.getElementById('filterRegDetailResetBtn').addEventListener('click', () => {
+    filterStateRegDetail.tema = '';
+    filterStateRegDetail.subtema = '';
+    populateRegDetailSubtemaSelect();
+    renderRegAll();
+  });
+}
+function regDetailField(label, value) {
+  const v = (value && value !== '-' && value !== '\\-') ? escapeHtml(value) : '—';
+  return `<div class="reg-detail-field"><div class="rdf-label">${escapeHtml(label)}</div><div class="rdf-value">${v}</div></div>`;
+}
+function renderRegDetail() {
+  syncRegDetailSelects();
+  const container = document.getElementById('regDetailContent');
+  const { tema, subtema } = filterStateRegDetail;
+  if (!tema || !subtema) {
+    container.innerHTML = '<div class="reg-detail-placeholder">Selecione um Tema e um Subtema acima para ver os detalhes da regulamentação.</div>';
+    return;
+  }
+  const rows = RAW_REG.filter(r => r['Tema'] === tema && r['Subtema'] === subtema);
+  if (!rows.length) {
+    container.innerHTML = '<div class="reg-detail-placeholder">Nenhuma regulamentação encontrada para esse Tema e Subtema.</div>';
+    return;
+  }
+  container.innerHTML = rows.map((r, i) => `
+    <div class="reg-detail-record">
+      ${rows.length > 1 ? `<span class="reg-detail-record-tag">Registro ${i + 1} de ${rows.length}</span>` : ''}
+      <div class="reg-detail-row">
+        ${regDetailField('Tema que requer regulamentação', r['Tema que requer regulamentação'])}
+        ${regDetailField('Tipo de ato', r['Tipo de ato'])}
+      </div>
+      <div class="reg-detail-row">
+        ${regDetailField('Dispositivos principais', r['Dispositivos principais'])}
+        ${regDetailField('O que precisa ser regulado', r['O que precisa ser regulado'])}
+      </div>
+      <div class="reg-detail-row">
+        ${regDetailField('Impactos econômicos positivos', r['Impactos econômicos positivos'])}
+        ${regDetailField('Impactos econômicos negativos/riscos', r['Impactos econômicos negativos/riscos'])}
+      </div>
+    </div>
+  `).join('');
+}
+
+/* ================= Pontos Focais ================= */
+function preparePF(pfTable) {
+  RAW_PF = pfTable.rows.filter(r => (r['Nome'] || '').trim() !== '');
+}
+function getFilteredPF() {
+  return RAW_PF.filter(r => !filterStatePF.ministerio || r['Ministério / Órgão'] === filterStatePF.ministerio);
+}
+function renderTablePF() {
+  const rows = getFilteredPF();
+  if (!tablePFInst) {
+    tablePFInst = createSimpleTable(document.getElementById('tablePFContainer'), {
+      pageSize: 15,
+      columns: [
+        { key: 'Ministério / Órgão', label: 'Ministério / Órgão', width: '220px' },
+        { key: 'Nome', label: 'Nome', width: '180px' },
+        { key: 'Cargo', label: 'Cargo', width: '260px' },
+        { key: 'Telefone', label: 'Telefone', width: '110px' },
+        { key: 'E-mail', label: 'E-mail', width: '180px' }
+      ]
+    });
+  }
+  tablePFInst.setData(rows);
+}
+function populatePFFilterSelect() {
+  const sel = document.getElementById('filterPF');
+  const ministerios = [...new Set(RAW_PF.map(r => r['Ministério / Órgão']).filter(Boolean))].sort((a, b) => a.localeCompare(b, 'pt-BR'));
+  sel.innerHTML = '<option value="">Todos os ministérios/órgãos</option>' + ministerios.map(m => `<option value="${escapeHtml(m)}">${escapeHtml(m)}</option>`).join('');
+}
+function syncPFSelect() {
+  document.getElementById('filterPF').value = filterStatePF.ministerio;
+}
+function wirePFFilterSelect() {
+  document.getElementById('filterPF').addEventListener('change', (e) => { filterStatePF.ministerio = e.target.value; renderPFAll(); });
+  document.getElementById('filterPFResetBtn').addEventListener('click', () => { filterStatePF.ministerio = ''; renderPFAll(); });
+}
+function updatePFFilterCountLabel() {
+  const rows = getFilteredPF();
+  document.getElementById('filterPFCountLabel').innerHTML = filterStatePF.ministerio
+    ? `Mostrando <strong>${rows.length}</strong> de ${RAW_PF.length} contatos`
+    : `<strong>${RAW_PF.length}</strong> contatos no total`;
+}
+function renderPFAll() {
+  syncPFSelect();
+  renderTablePF();
+  updatePFFilterCountLabel();
+}
+
+/* ================= Filter selects ================= */
+function populateFilterSelects() {
+  const blocoSel = document.getElementById('filterBloco');
+  blocoSel.innerHTML = '<option value="">Todos os blocos</option>' +
+    BLOCO_ORDER.map(k => `<option value="${escapeHtml(k)}">${escapeHtml(blocoDisplayLabel(k))}</option>`).join('');
+}
+function populateEntregaSelect() {
+  const entregaSel = document.getElementById('filterEntrega');
+  const rows = filterState.bloco ? RAW_CRONO.filter(r => r.blocoKey === filterState.bloco) : RAW_CRONO;
+  const entregas = [...new Set(rows.map(r => r['Entrega']))].sort((a, b) => a.localeCompare(b, 'pt-BR'));
+  entregaSel.innerHTML = '<option value="">Todas as entregas</option>' +
+    entregas.map(e => `<option value="${escapeHtml(e)}">${escapeHtml(e)}</option>`).join('');
+}
+function syncSelects() {
+  document.getElementById('filterBloco').value = filterState.bloco;
+  populateEntregaSelect();
+  document.getElementById('filterEntrega').value = filterState.entrega;
+  document.getElementById('filterStatusAcao').value = filterState.status;
+}
+function wireFilterSelects() {
+  document.getElementById('filterBloco').addEventListener('change', (e) => {
+    filterState.bloco = e.target.value; filterState.entrega = ''; renderAll();
+  });
+  document.getElementById('filterEntrega').addEventListener('change', (e) => {
+    filterState.entrega = e.target.value; renderAll();
+  });
+  document.getElementById('filterStatusAcao').addEventListener('change', (e) => {
+    filterState.status = e.target.value; renderAll();
+  });
+  document.getElementById('filterResetBtn').addEventListener('click', () => {
+    filterState.bloco = ''; filterState.entrega = ''; filterState.status = ''; renderAll();
+  });
+  document.getElementById('eapResetBtn').addEventListener('click', () => {
+    filterState.bloco = ''; filterState.entrega = ''; renderAll();
+  });
+}
+
+/* ================= Filter count label ================= */
+function updateFilterCountLabel() {
+  const rows = getFiltered();
+  const anyFilter = filterState.bloco || filterState.entrega || filterState.status;
+  document.getElementById('filterCountLabel').innerHTML = anyFilter
+    ? `Mostrando <strong>${rows.length}</strong> de ${RAW_CRONO.length} ações`
+    : `<strong>${RAW_CRONO.length}</strong> ações no total`;
+}
+
+/* ================= Header stats ================= */
+function renderHeaderStats() {
+  const total = RAW_CRONO.length;
+  const concluidas = RAW_CRONO.filter(r => r.statusAcaoNorm === 'Concluído').length;
+  const pct = total ? Math.round((concluidas / total) * 1000) / 10 : 0;
+  const entregasDistintas = new Set(RAW_CRONO.map(r => r.blocoKey + '||' + r['Entrega'])).size;
+  document.getElementById('headerStats').textContent =
+    `6 blocos · ${entregasDistintas} entregas operacionais · ${total} ações totais · ${concluidas} concluídas (${pct}%)`;
+}
+
+/* ================= Orchestration ================= */
+function renderAll() {
+  renderEapTree();
+  syncSelects();
+  if (HAS_CHART) {
+    renderChartBloco();
+    renderChartStatus();
+    renderChartStatusGeral();
+    renderChartResponsavel();
+  }
+  renderCatalog();
+  renderTable();
+  updateFilterCountLabel();
+}
+
+/* ================= Load (via the `mcp` artifact capability) ================= */
+async function loadData() {
+  try {
+    const text = EMBEDDED_TEXT;
+    const tables = parseAllTables(text);
+    if (!tables.length) throw new Error('Nenhuma tabela encontrada na planilha.');
+
+    const eapTable = findTableByHeader(tables, ['Bloco', 'Entrega', 'Descrição']);
+    const cronoTable = findTableByHeader(tables, ['Bloco', 'Entrega', 'Status geral da entrega', 'Ação', 'Status da ação', 'Documento que valida a conclusão', 'Responsável', 'Predecessora']);
+    const regTable = findTableByHeader(tables, ['Tema', 'Subtema', 'Modalidade', 'Tipo de ato']);
+    const pfTable = findTableByHeader(tables, ['Ministério / Órgão', 'Nome', 'Cargo', 'Telefone', 'E-mail']);
+    if (!eapTable) throw new Error('Aba "EAP por bloco" não encontrada.');
+    if (!cronoTable) throw new Error('Aba "Cronograma de ações" não encontrada.');
+    if (!regTable) throw new Error('Aba "Regulamentações" não encontrada.');
+    if (!pfTable) throw new Error('Aba "Pontos focais" não encontrada.');
+
+    prepareData(eapTable, cronoTable);
+    populateFilterSelects();
+    wireFilterSelects();
+
+    prepareReg(regTable);
+    populateRegFilterSelects();
+    wireRegFilterSelects();
+    populateRegDetailSelects();
+    wireRegDetailSelects();
+
+    preparePF(pfTable);
+    populatePFFilterSelect();
+    wirePFFilterSelect();
+
+    document.getElementById('loading').style.display = 'none';
+    document.getElementById('content').style.display = 'block';
+    document.getElementById('subtitleUpdated').textContent = `Dados da planilha extraídos em ${SNAPSHOT_DATE} (versão estática)`;
+
+    markChartsOffline();
+    renderHeaderStats();
+    renderAll();
+    renderRegAll();
+    renderPFAll();
+  } catch (err) {
+    document.getElementById('loading').style.display = 'none';
+    const box = document.getElementById('errorBox');
+    box.style.display = 'block';
+    const code = err && err.code ? ` (${err.code})` : '';
+    box.textContent = 'Não foi possível carregar os dados' + code + ': ' + (err && err.message ? err.message : err);
+  }
+}
+
+loadData();
+</script>
+
+</body></html>
